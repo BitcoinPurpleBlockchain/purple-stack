@@ -30,7 +30,7 @@ services:
       context: .
       dockerfile: Dockerfile.electrumx
     image: electrumx-server:local
-    container_name: electrumx-server
+    container_name: bitcoinpurple-electrumx
     restart: unless-stopped
     depends_on:
       - bitcoinpurpled
