@@ -1,0 +1,39 @@
+FROM lukechilds/electrumx
+
+# Install curl (needed by entrypoint for RPC calls and IP detection)
+RUN apk add --no-cache curl openssl || apt-get update && apt-get install -y --no-install-recommends curl openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy BitcoinPurple coin definition and patch ElectrumX
+COPY electrumx-patch/coins_btcp.py /tmp/coins_btcp.py
+
+RUN python3 - <<'PATCH'
+import pathlib, re
+
+patch = pathlib.Path('/tmp/coins_btcp.py').read_text()
+# Extract only class definitions (skip import lines)
+classes = re.split(r'^(?=class )', patch, flags=re.MULTILINE)
+classes = [c for c in classes if c.strip().startswith('class ')]
+body = '\n' + '\n'.join(classes)
+
+for target in [
+    '/usr/local/lib/python3.13/dist-packages/electrumx/lib/coins.py',
+    '/electrumx/src/electrumx/lib/coins.py',
+]:
+    p = pathlib.Path(target)
+    if p.exists():
+        s = p.read_text()
+        if 'class BitcoinPurple(Bitcoin):' not in s:
+            p.write_text(s + body)
+
+print('>> Patched ElectrumX with BitcoinPurple coin classes')
+PATCH
+
+ENV SSL_CERTFILE=/certs/server.crt
+ENV SSL_KEYFILE=/certs/server.key
+
+# Copy and setup entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

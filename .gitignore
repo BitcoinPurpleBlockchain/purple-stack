@@ -1,0 +1,47 @@
+# SSL certificates (auto-generated or user-provided)
+/certs/
+
+# Environment file
+.env
+
+# ElectrumX server data
+/electrumx-data/
+
+# BitcoinPurple node data (keep only the config file)
+/.bitcoinpurple/*
+!/.bitcoinpurple/bitcoinpurple.conf
+
+# Logs
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Daemon binaries
+/daemon/bitcoinpurpled
+/daemon/bitcoinpurple-cli
+/daemon/bitcoinpurple-tx
+/daemon/bitcoinpurple-wallet
+/daemon/bitcoinpurple-qt
+/daemon/bitcoinpurple-util
