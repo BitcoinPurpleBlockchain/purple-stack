@@ -1,5 +1,17 @@
 # Configuration
 
+## Component versions
+
+| Component | Version | Notes |
+|-----------|---------|-------|
+| **ElectrumX** | 1.18.0 | Package `e-x` from [spesmilo/electrumx](https://github.com/spesmilo/electrumx); base image `lukechilds/electrumx:latest` |
+| **Python** (ElectrumX container) | 3.13.5 | Provided by the base image |
+| **bitcoinpurpled** | see `daemon/download-binaries.sh` | Downloaded from [BitcoinPurpleBlockchain/bitcoinpurplecore](https://github.com/BitcoinPurpleBlockchain/bitcoinpurplecore/releases/latest) |
+
+> The ElectrumX base image is not pinned to a specific tag. If a future `lukechilds/electrumx` release breaks compatibility, pin it in [Dockerfile.electrumx](../Dockerfile.electrumx): `FROM lukechilds/electrumx:<tag>`.
+
+---
+
 ## Environment variables
 
 Copy `.env.example` to `.env` and edit as needed. All variables have defaults and the file is optional for local/LAN-only setups.

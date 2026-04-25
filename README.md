@@ -48,6 +48,10 @@ docker compose logs -f <service>     # tail logs
 
 docker exec bitcoinpurple-node bitcoinpurple-cli \
   -rpcuser=USER -rpcpassword=PASS getblockchaininfo
+
+# Tests (see test/README.md for full details)
+pytest test/unit/ -v                 # offline, no stack needed
+pytest test/integration/ -v         # requires docker compose up -d
 ```
 
 ---
@@ -62,6 +66,7 @@ docker exec bitcoinpurple-node bitcoinpurple-cli \
 | [doc/troubleshooting.md](doc/troubleshooting.md) | Common issues and fixes |
 | [web-dashboard/README.md](web-dashboard/README.md) | Dashboard features and REST API reference |
 | [technical-data.md](technical-data.md) | Full BTCP chain parameters reference |
+| [test/README.md](test/README.md) | Test suite: unit, integration, e2e |
 
 ---
 
