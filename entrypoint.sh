@@ -49,7 +49,9 @@ if [ -z "$REPORT_SERVICES" ]; then
     for url in https://icanhazip.com https://ifconfig.me https://api.ipify.org; do
         PUBLIC_IP=$(curl -sf --max-time 5 "$url" 2>/dev/null | tr -d '[:space:]')
         if [ -n "$PUBLIC_IP" ]; then
-            export REPORT_SERVICES="tcp://${PUBLIC_IP}:50001,ssl://${PUBLIC_IP}:50002"
+            _TCP_PORT=$(echo "${SERVICES}" | tr ',' '\n' | grep '^tcp://' | cut -d: -f3)
+            _SSL_PORT=$(echo "${SERVICES}" | tr ',' '\n' | grep '^ssl://' | cut -d: -f3)
+            export REPORT_SERVICES="tcp://${PUBLIC_IP}:${_TCP_PORT},ssl://${PUBLIC_IP}:${_SSL_PORT}"
             echo ">> Auto-detected REPORT_SERVICES: ${REPORT_SERVICES}"
             break
         fi

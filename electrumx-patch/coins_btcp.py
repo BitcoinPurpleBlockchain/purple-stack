@@ -19,7 +19,7 @@ class BitcoinPurple(Bitcoin):
 
     # Base58 address prefixes (src/kernel/chainparams.cpp:154-156)
     P2PKH_VERBYTE = bytes([56])        # 0x38 — mainnet P2PKH addresses start with 'P'
-    P2SH_VERBYTES = [bytes([55])]      # 0x37 — mainnet P2SH addresses start with 'P'
+    P2SH_VERBYTES = (bytes([55]),)     # 0x37 — mainnet P2SH addresses start with 'P'
     WIF_BYTE      = bytes([183])       # 0xb7
 
     # BIP32 HD key version bytes (src/kernel/chainparams.cpp:157-158)
@@ -32,10 +32,18 @@ class BitcoinPurple(Bitcoin):
     # SegWit active from genesis (BIP141/143/147 height 0); Taproot ALWAYS_ACTIVE
     DESERIALIZER = lib_tx.DeserializerSegWit
 
+    # Do not inherit Bitcoin peers or version gates.
+    PEERS = []
+    MIN_REQUIRED_DAEMON_VERSION = '1.1.1'
+    BLACKLIST_URL = None
+
+    # 1-minute blocks: keep enough undo data for practical reorg handling (×10 vs Bitcoin).
+    REORG_LIMIT = 1200
+
     # Chain stats — overwritten at ElectrumX startup via getchaintxstats RPC
-    # (src/kernel/chainparams.cpp:178-184)
-    TX_COUNT        = 1_039_113
-    TX_COUNT_HEIGHT = 917_081
+    # (src/kernel/chainparams.cpp:178-184); updated at block 1,048,808 (Apr 2026)
+    TX_COUNT        = 1_189_400
+    TX_COUNT_HEIGHT = 1_048_808
     TX_PER_BLOCK    = 2
 
     # Node RPC port — mainnet (src/chainparamsbase.cpp:47)
@@ -70,4 +78,6 @@ class BitcoinPurpleTestnet(BitcoinPurple):
     # Testnet RPC port (src/chainparamsbase.cpp:49)
     RPC_PORT = 23495
 
+    PEERS = []
+    REORG_LIMIT = 1200
     PEER_DEFAULT_PORTS = {'t': '60001', 's': '60002'}
