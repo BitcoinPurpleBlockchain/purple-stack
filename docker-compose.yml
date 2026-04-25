@@ -46,8 +46,8 @@ services:
     networks:
       - purple
     ports:
-      - "0.0.0.0:${ELECTRUMX_TCP_PORT:-50001}:${ELECTRUMX_TCP_PORT:-50001}"  # TCP
-      - "0.0.0.0:${ELECTRUMX_SSL_PORT:-50002}:${ELECTRUMX_SSL_PORT:-50002}"  # SSL
+      - "0.0.0.0:${ELECTRUMX_TCP_PORT:-51001}:${ELECTRUMX_TCP_PORT:-51001}"  # TCP
+      - "0.0.0.0:${ELECTRUMX_SSL_PORT:-51002}:${ELECTRUMX_SSL_PORT:-51002}"  # SSL
 
     environment:
       # ===== Network Configuration =====
@@ -60,7 +60,7 @@ services:
       # NOTE: RPC credentials are automatically read from bitcoinpurple.conf
       # No need to configure DAEMON_URL manually anymore!
 
-      SERVICES: "tcp://0.0.0.0:${ELECTRUMX_TCP_PORT:-50001},ssl://0.0.0.0:${ELECTRUMX_SSL_PORT:-50002},rpc://0.0.0.0:8000"
+      SERVICES: "tcp://0.0.0.0:${ELECTRUMX_TCP_PORT:-51001},ssl://0.0.0.0:${ELECTRUMX_SSL_PORT:-51002},rpc://0.0.0.0:8000"
 
       SSL_CERTFILE: "/certs/server.crt"
       SSL_KEYFILE: "/certs/server.key"
@@ -70,6 +70,8 @@ services:
       PEER_ANNOUNCE: "true"
       # REPORT_SERVICES is auto-detected at startup. Set manually only to override.
       # REPORT_SERVICES: "tcp://your.public.ip:${ELECTRUMX_TCP_PORT:-50001},ssl://your.public.ip:${ELECTRUMX_SSL_PORT:-50002}"
+      # Bootstrap peers for ElectrumX peer discovery (see .env.example)
+      ELECTRUMX_PEERS: "${ELECTRUMX_PEERS:-}"
       INITIAL_CONCURRENT: "2"
       COST_SOFT_LIMIT: "0"
       COST_HARD_LIMIT: "0"
@@ -100,7 +102,7 @@ services:
     networks:
       - purple
     ports:
-      - "0.0.0.0:8080:8080"  # Web Dashboard (accessible from network)
+      - "0.0.0.0:${DASHBOARD_PORT:-8080}:8080"  # Web Dashboard (accessible from network)
 
     environment:
       BITCOINPURPLE_RPC_HOST: "bitcoinpurpled"

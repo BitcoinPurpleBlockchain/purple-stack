@@ -33,7 +33,9 @@ class BitcoinPurple(Bitcoin):
     DESERIALIZER = lib_tx.DeserializerSegWit
 
     # Do not inherit Bitcoin peers or version gates.
-    PEERS = []
+    PEERS = [
+        'bitcoinpurpleblockchain.com s t',
+    ]
     MIN_REQUIRED_DAEMON_VERSION = '1.1.1'
     BLACKLIST_URL = None
 
@@ -50,7 +52,7 @@ class BitcoinPurple(Bitcoin):
     RPC_PORT = 13495
 
     # Default Electrum peer ports
-    PEER_DEFAULT_PORTS = {'t': '50001', 's': '50002'}
+    PEER_DEFAULT_PORTS = {'t': '51001', 's': '51002'}
 
 
 class BitcoinPurpleTestnet(BitcoinPurple):
