@@ -1,0 +1,7 @@
+pytest>=7
+pytest-mock
+flask
+flask-cors
+requests
+psutil
+python-dateutil
