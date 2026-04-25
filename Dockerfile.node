@@ -1,0 +1,19 @@
+FROM ubuntu:22.04
+
+# libstdc++6 is the only runtime dep — all other libraries are statically linked
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY daemon/bitcoinpurpled    /usr/local/bin/
+COPY daemon/bitcoinpurple-cli /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/bitcoinpurpled \
+             /usr/local/bin/bitcoinpurple-cli
+
+RUN mkdir -p /root/.bitcoinpurple
+
+# Mainnet: 13495 (RPC), 13496 (P2P) — Testnet: 23495 (RPC), 23496 (P2P)
+EXPOSE 13495 13496 23495 23496
+
+CMD ["bitcoinpurpled", "-printtoconsole=1"]

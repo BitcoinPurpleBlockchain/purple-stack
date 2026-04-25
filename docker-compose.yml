@@ -1,0 +1,118 @@
+networks:
+  purple:
+    name: purple  # fixed name, independent of the directory — other stacks can join with external: true
+
+services:
+  bitcoinpurpled:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    image: bitcoinpurple-node:local
+    container_name: bitcoinpurple-node
+    restart: unless-stopped
+    networks:
+      - purple
+    ports:
+      - "0.0.0.0:13496:13496"  # P2P port mainnet (accessible from network)
+      # For testnet, expose: 23496 (P2P)
+      # RPC (13495) and ZMQ (28332-28335) are NOT exposed on the host.
+      # Other Docker stacks on this host can reach them via purple:
+      #   bitcoinpurpled:13495  (RPC)
+      #   bitcoinpurpled:28332  (ZMQ rawblock)
+      #   bitcoinpurpled:28333  (ZMQ rawtx)
+      #   bitcoinpurpled:28334  (ZMQ hashblock)
+      #   bitcoinpurpled:28335  (ZMQ hashtx)
+
+    volumes:
+      # Mount .bitcoinpurple folder (contains config and blockchain data)
+      - ./.bitcoinpurple:/root/.bitcoinpurple
+
+    command: >
+      bitcoinpurpled
+      -conf=/root/.bitcoinpurple/bitcoinpurple.conf
+      -datadir=/root/.bitcoinpurple
+      -daemon=0
+      -printtoconsole=1
+
+  electrumx:
+    build:
+      context: .
+      dockerfile: Dockerfile.electrumx
+    image: electrumx-server:local
+    container_name: electrumx-server
+    restart: unless-stopped
+    depends_on:
+      - bitcoinpurpled
+    networks:
+      - purple
+    ports:
+      - "0.0.0.0:50001:50001"  # TCP (accessible from network)
+      - "0.0.0.0:50002:50002"  # SSL (accessible from network)
+
+    environment:
+      # ===== Network Configuration =====
+      # For MAINNET use: COIN: "BitcoinPurple", NET: "mainnet"
+      # For TESTNET use: COIN: "BitcoinPurple", NET: "testnet"
+
+      COIN: "BitcoinPurple"  # Always "BitcoinPurple" for both networks
+      NET: "mainnet"
+
+      # NOTE: RPC credentials are automatically read from bitcoinpurple.conf
+      # No need to configure DAEMON_URL manually anymore!
+
+      SERVICES: "tcp://0.0.0.0:50001,ssl://0.0.0.0:50002,rpc://0.0.0.0:8000"
+
+      SSL_CERTFILE: "/certs/server.crt"
+      SSL_KEYFILE: "/certs/server.key"
+
+      DB_DIRECTORY: "/data"
+      PEER_DISCOVERY: "on"
+      PEER_ANNOUNCE: "true"
+      # REPORT_SERVICES is auto-detected at startup. Set manually only to override.
+      # REPORT_SERVICES: "tcp://your.public.ip:50001,ssl://your.public.ip:50002"
+      INITIAL_CONCURRENT: "2"
+      COST_SOFT_LIMIT: "0"
+      COST_HARD_LIMIT: "0"
+      # ElectrumX performance (src: technical-data.md minimal env)
+      CACHE_MB: "1200"
+      MAX_SESSIONS: "1000"
+
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+
+    volumes:
+      - ./electrumx-data:/data
+      - ./.bitcoinpurple/bitcoinpurple.conf:/bitcoinpurple-config/bitcoinpurple.conf:ro
+      - ./certs:/certs
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    image: bitcoinpurple-dashboard:local
+    container_name: bitcoinpurple-dashboard
+    restart: unless-stopped
+    depends_on:
+      - bitcoinpurpled
+      - electrumx
+    networks:
+      - purple
+    ports:
+      - "0.0.0.0:8080:8080"  # Web Dashboard (accessible from network)
+
+    environment:
+      BITCOINPURPLE_RPC_HOST: "bitcoinpurpled"
+      BITCOINPURPLE_RPC_PORT: "13495"
+      ELECTRUMX_RPC_HOST: "electrumx"
+      ELECTRUMX_RPC_PORT: "8000"
+      DASHBOARD_AUTH_USERNAME: "${DASHBOARD_AUTH_USERNAME:-admin}"
+      DASHBOARD_AUTH_PASSWORD: "${DASHBOARD_AUTH_PASSWORD:-change-me-now}"
+      API_KEY: "${API_KEY:-}"
+      DASHBOARD_SESSION_HOURS: "${DASHBOARD_SESSION_HOURS:-1}"
+      DASHBOARD_SESSION_COOKIE_SECURE: "${DASHBOARD_SESSION_COOKIE_SECURE:-false}"
+
+    volumes:
+      - ./.bitcoinpurple/bitcoinpurple.conf:/bitcoinpurple-config/bitcoinpurple.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
