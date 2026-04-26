@@ -34,7 +34,7 @@ class BitcoinPurple(Bitcoin):
 
     # Do not inherit Bitcoin peers or version gates.
     PEERS = [
-        'bitcoinpurpleblockchain.com s t',
+        '173.212.224.67 s t',
     ]
     MIN_REQUIRED_DAEMON_VERSION = '1.1.1'
     BLACKLIST_URL = None
