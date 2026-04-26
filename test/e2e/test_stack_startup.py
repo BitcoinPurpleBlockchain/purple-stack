@@ -9,7 +9,7 @@ import pytest
 BASE = 'http://localhost:8080'
 EXPECTED_CONTAINERS = [
     'bitcoinpurple-node',
-    'electrumx-server',
+    'btcp-electrumx',
     'bitcoinpurple-dashboard',
 ]
 
@@ -56,7 +56,7 @@ def test_no_fatal_in_node_logs():
 @pytest.mark.e2e
 def test_no_fatal_in_electrumx_logs():
     r = subprocess.run(
-        ['docker', 'logs', '--tail', '100', 'electrumx-server'],
+        ['docker', 'logs', '--tail', '100', 'btcp-electrumx'],
         capture_output=True, text=True
     )
     combined = r.stdout + r.stderr

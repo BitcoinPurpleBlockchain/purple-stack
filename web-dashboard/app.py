@@ -218,7 +218,7 @@ def get_electrumx_service_ports():
     try:
         import subprocess
         result = subprocess.run(
-            ['docker', 'exec', 'electrumx-server', 'sh', '-c', 'printf "%s" "${SERVICES:-}"'],
+            ['docker', 'exec', 'btcp-electrumx', 'sh', '-c', 'printf "%s" "${SERVICES:-}"'],
             capture_output=True,
             text=True,
             timeout=2
@@ -767,7 +767,7 @@ def get_electrumx_stats(include_addnode_probes=False):
         # Read peer discovery/announce settings from electrumx container env
         try:
             result = subprocess.run(
-                ['docker', 'exec', 'electrumx-server', 'sh', '-c',
+                ['docker', 'exec', 'btcp-electrumx', 'sh', '-c',
                  'printf "%s|%s" "${PEER_DISCOVERY:-unknown}" "${PEER_ANNOUNCE:-unknown}"'],
                 capture_output=True,
                 text=True,
@@ -785,7 +785,7 @@ def get_electrumx_stats(include_addnode_probes=False):
         try:
             # Get container uptime
             result = subprocess.run(
-                ['docker', 'inspect', 'electrumx-server', '--format', '{{.State.StartedAt}}'],
+                ['docker', 'inspect', 'btcp-electrumx', '--format', '{{.State.StartedAt}}'],
                 capture_output=True,
                 text=True,
                 timeout=2
@@ -803,7 +803,7 @@ def get_electrumx_stats(include_addnode_probes=False):
         # Try to estimate DB size from data directory
         try:
             result = subprocess.run(
-                ['docker', 'exec', 'electrumx-server', 'du', '-sb', '/data'],
+                ['docker', 'exec', 'btcp-electrumx', 'du', '-sb', '/data'],
                 capture_output=True,
                 text=True,
                 timeout=5
@@ -819,7 +819,7 @@ def get_electrumx_stats(include_addnode_probes=False):
             if not local_tcp_port:
                 raise RuntimeError("SERVICES tcp port not configured")
             result = subprocess.run(
-                ['docker', 'exec', 'electrumx-server', 'sh', '-c',
+                ['docker', 'exec', 'btcp-electrumx', 'sh', '-c',
                  f'netstat -an 2>/dev/null | grep ":{local_tcp_port}.*ESTABLISHED" | wc -l'],
                 capture_output=True,
                 text=True,
@@ -1030,7 +1030,7 @@ def electrumx_stats():
                 # Try to get container stats
                 import subprocess
                 result = subprocess.run(
-                    ['docker', 'exec', 'electrumx-server', 'sh', '-c',
+                    ['docker', 'exec', 'btcp-electrumx', 'sh', '-c',
                      'ps aux | grep electrumx_server | grep -v grep'],
                     capture_output=True,
                     text=True,

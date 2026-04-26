@@ -38,8 +38,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.electrumx
-    image: electrumx-server:local
-    container_name: electrumx-server
+    image: btcp-electrumx:local
+    container_name: btcp-electrumx
     restart: unless-stopped
     depends_on:
       - bitcoinpurpled
