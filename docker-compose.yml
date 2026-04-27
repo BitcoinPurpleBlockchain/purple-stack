@@ -23,6 +23,12 @@ services:
       #   bitcoinpurpled:28334  (ZMQ hashblock)
       #   bitcoinpurpled:28335  (ZMQ hashtx)
 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
     volumes:
       # Mount .bitcoinpurple folder (contains config and blockchain data)
       - ./.bitcoinpurple:/root/.bitcoinpurple
@@ -84,6 +90,12 @@ services:
         soft: 1048576
         hard: 1048576
 
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
     volumes:
       - ./electrumx-data:/data
       - ./.bitcoinpurple/bitcoinpurple.conf:/bitcoinpurple-config/bitcoinpurple.conf:ro
@@ -114,6 +126,12 @@ services:
       API_KEY: "${API_KEY:-}"
       DASHBOARD_SESSION_HOURS: "${DASHBOARD_SESSION_HOURS:-1}"
       DASHBOARD_SESSION_COOKIE_SECURE: "${DASHBOARD_SESSION_COOKIE_SECURE:-false}"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     volumes:
       - ./.bitcoinpurple/bitcoinpurple.conf:/bitcoinpurple-config/bitcoinpurple.conf:ro
