@@ -168,7 +168,7 @@ if [ -n "$TX_STATS" ]; then
     TX_COUNT=$(echo "$TX_STATS" | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['txcount'])" 2>/dev/null || true)
     TX_HEIGHT=$(echo "$TX_STATS" | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['window_final_block_height'])" 2>/dev/null || true)
 
-    if [ -n "$TX_COUNT" ] && [ -n "$TX_HEIGHT" ]; then
+    if [ -n "$TX_COUNT" ] && [ -n "$TX_HEIGHT" ] && [ "$TX_HEIGHT" -gt 0 ] 2>/dev/null; then
         echo "Patching coins.py: TX_COUNT=${TX_COUNT}, TX_COUNT_HEIGHT=${TX_HEIGHT}"
         python3 - "$TX_COUNT" "$TX_HEIGHT" <<'TXPATCH'
 import sys, pathlib, re
@@ -181,13 +181,13 @@ for target in [
     if not p.exists():
         continue
     s = p.read_text()
-    s = re.sub(r'(class BitcoinPurple\(Bitcoin\):.*?TX_COUNT\s*=\s*)\d+', rf'\g<1>{tx_count}', s, count=1, flags=re.DOTALL)
-    s = re.sub(r'(class BitcoinPurple\(Bitcoin\):.*?TX_COUNT_HEIGHT\s*=\s*)\d+', rf'\g<1>{tx_height}', s, count=1, flags=re.DOTALL)
+    s = re.sub(r'(class BitcoinPurple\(Bitcoin\):.*?TX_COUNT\s*=\s*)[\d_]+', rf'\g<1>{tx_count}', s, count=1, flags=re.DOTALL)
+    s = re.sub(r'(class BitcoinPurple\(Bitcoin\):.*?TX_COUNT_HEIGHT\s*=\s*)[\d_]+', rf'\g<1>{tx_height}', s, count=1, flags=re.DOTALL)
     p.write_text(s)
 TXPATCH
         echo ">> TX stats updated from live node"
     else
-        echo ">> Could not parse tx stats, using defaults from coins_btcp.py"
+        echo ">> Node still syncing or stats unavailable, using defaults from coins_btcp.py"
     fi
 else
     echo ">> Node not reachable yet, using defaults from coins_btcp.py"
