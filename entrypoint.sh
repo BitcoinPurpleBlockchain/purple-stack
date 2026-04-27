@@ -62,14 +62,13 @@ if [ -z "$REPORT_SERVICES" ]; then
 fi
 
 # Inject bootstrap ElectrumX peers if ELECTRUMX_PEERS is set.
-# Format: comma-separated list of "host s t" entries (ElectrumX peer format).
+# Format: comma-separated list of "host [s] [t]" entries (ElectrumX peer format).
 # "s" = SSL on default port, "t" = TCP on default port.
-# Example: ELECTRUMX_PEERS="1.2.3.4 s t,my.server.com s t"
+# Example: ELECTRUMX_PEERS="1.2.3.4 t,my.server.com t"
 if [ -n "${ELECTRUMX_PEERS:-}" ]; then
     python3 - "${ELECTRUMX_PEERS}" <<'PEERSINJECT'
-import sys, pathlib, re
-peers = [p.strip() for p in sys.argv[1].split(',') if p.strip()]
-coin_class = 'BitcoinPurple' if 'testnet' not in (sys.argv[2] if len(sys.argv) > 2 else '') else 'BitcoinPurple'
+import sys, pathlib, re, ast
+peers_new = [p.strip() for p in sys.argv[1].split(',') if p.strip()]
 for target in [
     '/usr/local/lib/python3.13/dist-packages/electrumx/lib/coins.py',
     '/electrumx/src/electrumx/lib/coins.py',
@@ -78,13 +77,15 @@ for target in [
     if not p.exists():
         continue
     s = p.read_text()
-    s = re.sub(
-        r'(class BitcoinPurple\(Bitcoin\):.*?PEERS\s*=\s*)\[\]',
-        r'\g<1>' + repr(peers),
-        s, count=1, flags=re.DOTALL
-    )
+    m = re.search(r'(class BitcoinPurple\(Bitcoin\):.*?PEERS\s*=\s*)(\[[^\]]*\])', s, flags=re.DOTALL)
+    if not m:
+        print('>> WARNING: Could not find PEERS in BitcoinPurple class')
+        break
+    existing = ast.literal_eval(m.group(2))
+    merged = existing + [e for e in peers_new if e not in existing]
+    s = s[:m.start(2)] + repr(merged) + s[m.end(2):]
     p.write_text(s)
-    print(f'>> Injected {len(peers)} ElectrumX peer(s): {peers}')
+    print(f'>> PEERS merged: {merged} ({len(merged)} total)')
     break
 PEERSINJECT
 fi
