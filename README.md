@@ -28,13 +28,29 @@ docker compose up -d
 
 Dashboard: `http://localhost:8080`
 
-For internet-facing deployments, configure auth before exposing port 8080:
+For internet-facing deployments, copy `.env.example` to `.env` and set credentials before exposing port 8080 — see the [Configuration](#configuration) section below.
 
-```bash
-cp .env.example .env
-./generate-api-key.sh
-nano .env
-```
+---
+
+## Configuration
+
+Copy `.env.example` to `.env` before exposing the stack to the internet. The file is optional for local/LAN-only setups — all variables have safe defaults.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ELECTRUMX_TCP_PORT` | `51001` | ElectrumX plain TCP port |
+| `ELECTRUMX_SSL_PORT` | `51002` | ElectrumX SSL port |
+| `DASHBOARD_PORT` | `8080` | Web dashboard HTTP port |
+| `DASHBOARD_AUTH_USERNAME` | `admin` | Basic Auth username for external access |
+| `DASHBOARD_AUTH_PASSWORD` | `change-me-now` | Basic Auth password |
+| `API_KEY` | — | API key for `/api/*` + session cookie signing — generate with `./generate-api-key.sh` |
+| `DASHBOARD_SESSION_HOURS` | `1` | Dashboard login session duration |
+| `DASHBOARD_SESSION_COOKIE_SECURE` | `false` | Set `true` when serving over HTTPS |
+| `ELECTRUMX_PEERS` | — | Bootstrap peers, e.g. `1.2.3.4 t,5.6.7.8 t` (ElectrumX discovers the rest automatically) |
+
+RPC credentials (`rpcuser` / `rpcpassword`) are set in `.bitcoinpurple/bitcoinpurple.conf`, not in `.env`.
+
+For detailed docs see [`doc/configuration.md`](doc/configuration.md) · [`doc/networking.md`](doc/networking.md) · [`doc/security.md`](doc/security.md) · [`doc/troubleshooting.md`](doc/troubleshooting.md).
 
 ---
 
