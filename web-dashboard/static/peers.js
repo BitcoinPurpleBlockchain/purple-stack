@@ -1,5 +1,11 @@
 // Peers Page JavaScript
 
+function esc(value) {
+    const el = document.createElement('span');
+    el.textContent = (value == null ? '' : String(value));
+    return el.innerHTML;
+}
+
 async function apiFetch(url) {
     const apiKey = (window.DASHBOARD_API_KEY || '').trim();
     const headers = apiKey ? { 'X-API-Key': apiKey } : {};
@@ -76,9 +82,9 @@ async function updatePeers() {
                 const peerTotal = (peer.bytessent || 0) + (peer.bytesrecv || 0);
 
                 row.innerHTML = `
-                    <td class="peer-addr">${peer.addr}</td>
+                    <td class="peer-addr">${esc(peer.addr)}</td>
                     <td><span class="${directionClass}">${direction}</span></td>
-                    <td>${version}</td>
+                    <td>${esc(version)}</td>
                     <td>${connTime}</td>
                     <td>${formatBytes(peer.bytessent || 0)}</td>
                     <td>${formatBytes(peer.bytesrecv || 0)}</td>

@@ -4,7 +4,6 @@ Web Dashboard API for BitcoinPurple Node and ElectrumX Server Statistics
 """
 
 from flask import Flask, jsonify, render_template, request, session
-from flask_cors import CORS
 import requests
 import json
 import os
@@ -21,7 +20,6 @@ import psutil
 import socket
 
 app = Flask(__name__)
-CORS(app)
 
 app.secret_key = os.getenv('API_KEY', secrets.token_hex(32))
 _session_hours = int(os.getenv('DASHBOARD_SESSION_HOURS', '1'))
@@ -155,6 +153,8 @@ ELECTRUMX_EMPTY_SERVERS_TTL = int(os.getenv('ELECTRUMX_EMPTY_SERVERS_TTL', '15')
 # In-memory caches for fast card stats and heavier server probing stats
 _electrumx_stats_cache = {'timestamp': 0.0, 'stats': None}
 _electrumx_servers_cache = {'timestamp': 0.0, 'stats': None}
+_electrumx_stats_lock = threading.Lock()
+_electrumx_servers_lock = threading.Lock()
 
 
 def warm_electrumx_caches_async():
@@ -234,85 +234,68 @@ def get_electrumx_service_ports():
 def probe_electrum_server(host, port, timeout=2.0):
     """Check if an Electrum server is reachable and speaking protocol on host:port"""
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        sock.connect((host, port))
-        request = {
-            "jsonrpc": "2.0",
-            "id": 100,
-            "method": "server.version",
-            "params": ["bitcoinpurple-dashboard", "1.4"]
-        }
-        sock.sendall((json.dumps(request) + '\n').encode())
-
-        data = b""
-        for _ in range(6):
-            chunk = sock.recv(4096)
-            if not chunk:
-                break
-            data += chunk
-            candidate = data.decode(errors='ignore')
-            candidate = candidate.split("\n", 1)[0].strip()
-            if candidate:
-                try:
-                    payload = json.loads(candidate)
-                    sock.close()
-                    return 'result' in payload
-                except Exception:
-                    pass
-        sock.close()
-        line = data.split(b"\n", 1)[0].decode(errors='ignore').strip() if data else ""
-        payload = json.loads(line) if line else {}
-        if 'result' in payload:
-            return True
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            sock.connect((host, port))
+            request = {
+                "jsonrpc": "2.0",
+                "id": 100,
+                "method": "server.version",
+                "params": ["bitcoinpurple-dashboard", "1.4"]
+            }
+            sock.sendall((json.dumps(request) + '\n').encode())
+            data = b""
+            for _ in range(6):
+                chunk = sock.recv(4096)
+                if not chunk:
+                    break
+                data += chunk
+                candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
+                if candidate:
+                    try:
+                        return 'result' in json.loads(candidate)
+                    except Exception:
+                        pass
+            line = data.split(b"\n", 1)[0].decode(errors='ignore').strip() if data else ""
+            return 'result' in json.loads(line) if line else False
     except Exception:
         return False
-    return False
 
 
 def probe_electrum_server_ssl(host, port, timeout=2.0):
     """Check if an Electrum SSL server is reachable on host:port (self-signed allowed)."""
     try:
-        raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        raw_sock.settimeout(timeout)
-        raw_sock.connect((host, port))
-
-        context = ssl.create_default_context()
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-        ssl_sock = context.wrap_socket(raw_sock, server_hostname=host)
-        ssl_sock.settimeout(timeout)
-
-        request = {
-            "jsonrpc": "2.0",
-            "id": 101,
-            "method": "server.version",
-            "params": ["bitcoinpurple-dashboard", "1.4"]
-        }
-        ssl_sock.sendall((json.dumps(request) + '\n').encode())
-        data = b""
-        for _ in range(6):
-            chunk = ssl_sock.recv(4096)
-            if not chunk:
-                break
-            data += chunk
-            candidate = data.decode(errors='ignore')
-            candidate = candidate.split("\n", 1)[0].strip()
-            if candidate:
-                try:
-                    payload = json.loads(candidate)
-                    ssl_sock.close()
-                    return 'result' in payload
-                except Exception:
-                    pass
-        ssl_sock.close()
-        line = data.split(b"\n", 1)[0].decode(errors='ignore').strip() if data else ""
-        payload = json.loads(line) if line else {}
-        if 'result' in payload:
-            return True
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as raw_sock:
+            raw_sock.settimeout(timeout)
+            raw_sock.connect((host, port))
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            with context.wrap_socket(raw_sock, server_hostname=host) as ssl_sock:
+                ssl_sock.settimeout(timeout)
+                request = {
+                    "jsonrpc": "2.0",
+                    "id": 101,
+                    "method": "server.version",
+                    "params": ["bitcoinpurple-dashboard", "1.4"]
+                }
+                ssl_sock.sendall((json.dumps(request) + '\n').encode())
+                data = b""
+                for _ in range(6):
+                    chunk = ssl_sock.recv(4096)
+                    if not chunk:
+                        break
+                    data += chunk
+                    candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
+                    if candidate:
+                        try:
+                            return 'result' in json.loads(candidate)
+                        except Exception:
+                            pass
+                line = data.split(b"\n", 1)[0].decode(errors='ignore').strip() if data else ""
+                return 'result' in json.loads(line) if line else False
     except Exception:
         return False
-    return False
 
 
 def get_electrum_server_genesis(host, tcp_port=None, ssl_port=None, timeout=2.0):
@@ -326,50 +309,44 @@ def get_electrum_server_genesis(host, tcp_port=None, ssl_port=None, timeout=2.0)
 
     if tcp_port:
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect((host, tcp_port))
-            sock.sendall((json.dumps(request) + '\n').encode())
-            data = b""
-            for _ in range(6):
-                chunk = sock.recv(4096)
-                if not chunk:
-                    break
-                data += chunk
-                candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
-                if candidate:
-                    payload = json.loads(candidate)
-                    genesis = (payload.get('result') or {}).get('genesis_hash')
-                    sock.close()
-                    return genesis
-            sock.close()
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(timeout)
+                sock.connect((host, tcp_port))
+                sock.sendall((json.dumps(request) + '\n').encode())
+                data = b""
+                for _ in range(6):
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    data += chunk
+                    candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
+                    if candidate:
+                        payload = json.loads(candidate)
+                        return (payload.get('result') or {}).get('genesis_hash')
         except Exception:
             pass
 
     if ssl_port:
         try:
-            raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            raw_sock.settimeout(timeout)
-            raw_sock.connect((host, ssl_port))
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            ssl_sock = context.wrap_socket(raw_sock, server_hostname=host)
-            ssl_sock.settimeout(timeout)
-            ssl_sock.sendall((json.dumps(request) + '\n').encode())
-            data = b""
-            for _ in range(6):
-                chunk = ssl_sock.recv(4096)
-                if not chunk:
-                    break
-                data += chunk
-                candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
-                if candidate:
-                    payload = json.loads(candidate)
-                    genesis = (payload.get('result') or {}).get('genesis_hash')
-                    ssl_sock.close()
-                    return genesis
-            ssl_sock.close()
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as raw_sock:
+                raw_sock.settimeout(timeout)
+                raw_sock.connect((host, ssl_port))
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                with context.wrap_socket(raw_sock, server_hostname=host) as ssl_sock:
+                    ssl_sock.settimeout(timeout)
+                    ssl_sock.sendall((json.dumps(request) + '\n').encode())
+                    data = b""
+                    for _ in range(6):
+                        chunk = ssl_sock.recv(4096)
+                        if not chunk:
+                            break
+                        data += chunk
+                        candidate = data.decode(errors='ignore').split("\n", 1)[0].strip()
+                        if candidate:
+                            payload = json.loads(candidate)
+                            return (payload.get('result') or {}).get('genesis_hash')
         except Exception:
             pass
 
@@ -382,20 +359,18 @@ def is_electrumx_reachable(timeout=1.0):
     if not tcp_port:
         return False
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        sock.connect((ELECTRUMX_RPC_HOST, tcp_port))
-        request = {
-            "jsonrpc": "2.0",
-            "id": 999,
-            "method": "server.version",
-            "params": ["bitcoinpurple-health", "1.4"]
-        }
-        sock.send((json.dumps(request) + '\n').encode())
-        response = sock.recv(4096).decode()
-        sock.close()
-        data = json.loads(response)
-        return 'result' in data
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            sock.connect((ELECTRUMX_RPC_HOST, tcp_port))
+            request = {
+                "jsonrpc": "2.0",
+                "id": 999,
+                "method": "server.version",
+                "params": ["bitcoinpurple-health", "1.4"]
+            }
+            sock.send((json.dumps(request) + '\n').encode())
+            data = json.loads(sock.recv(4096).decode())
+            return 'result' in data
     except Exception:
         return False
 
@@ -411,31 +386,34 @@ def is_electrumx_reachable_retry():
 def get_electrumx_stats_cached(force_refresh=False, include_addnode_probes=False):
     """Return cached ElectrumX stats unless cache is stale."""
     cache = _electrumx_servers_cache if include_addnode_probes else _electrumx_stats_cache
+    lock = _electrumx_servers_lock if include_addnode_probes else _electrumx_stats_lock
     ttl = ELECTRUMX_SERVERS_TTL if include_addnode_probes else ELECTRUMX_STATS_TTL
-    now = time.time()
-    cached = cache.get('stats')
-    cached_ts = cache.get('timestamp', 0.0)
 
-    if (
-        include_addnode_probes
-        and cached is not None
-        and (cached.get('active_servers_count', 0) == 0)
-    ):
-        ttl = ELECTRUMX_EMPTY_SERVERS_TTL
+    with lock:
+        now = time.time()
+        cached = cache.get('stats')
+        cached_ts = cache.get('timestamp', 0.0)
 
-    if not force_refresh and cached is not None and (now - cached_ts) < ttl:
-        return copy.deepcopy(cached)
+        if (
+            include_addnode_probes
+            and cached is not None
+            and (cached.get('active_servers_count', 0) == 0)
+        ):
+            ttl = ELECTRUMX_EMPTY_SERVERS_TTL
+
+        if not force_refresh and cached is not None and (now - cached_ts) < ttl:
+            return copy.deepcopy(cached)
 
     fresh = get_electrumx_stats(include_addnode_probes=include_addnode_probes)
-    if fresh is not None:
-        cache['timestamp'] = now
-        cache['stats'] = fresh
-        return copy.deepcopy(fresh)
 
-    # Fallback to stale cache if fresh fetch fails
-    if cached is not None:
-        return copy.deepcopy(cached)
-    return None
+    with lock:
+        if fresh is not None:
+            cache['timestamp'] = time.time()
+            cache['stats'] = fresh
+            return copy.deepcopy(fresh)
+        # Fallback to stale cache if fresh fetch fails
+        cached = cache.get('stats')
+        return copy.deepcopy(cached) if cached is not None else None
 
 # Read RPC credentials from bitcoinpurple.conf
 def get_rpc_credentials():

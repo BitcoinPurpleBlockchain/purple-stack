@@ -1,5 +1,11 @@
 // Dashboard JavaScript
 
+function esc(value) {
+    const el = document.createElement('span');
+    el.textContent = (value == null ? '' : String(value));
+    return el.innerHTML;
+}
+
 // API fetch helper with optional API key injected from template
 async function apiFetch(url, options = {}) {
     const apiKey = (window.DASHBOARD_API_KEY || "").trim();
@@ -204,11 +210,11 @@ async function updateRecentBlocks() {
             data.blocks.forEach(block => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${block.height}</strong></td>
-                    <td class="hash-cell" title="${block.hash}">${block.hash.substring(0, 20)}...</td>
+                    <td><strong>${esc(block.height)}</strong></td>
+                    <td class="hash-cell" title="${esc(block.hash)}">${esc(String(block.hash || '').substring(0, 20))}...</td>
                     <td>${formatTime(block.time)}</td>
                     <td>${formatBytes(block.size)}</td>
-                    <td>${block.tx_count}</td>
+                    <td>${esc(block.tx_count)}</td>
                 `;
                 tbody.appendChild(row);
             });

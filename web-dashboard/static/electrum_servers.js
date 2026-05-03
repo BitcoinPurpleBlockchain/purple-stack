@@ -1,5 +1,11 @@
 // Electrum Active Servers Page JavaScript
 
+function esc(value) {
+    const el = document.createElement('span');
+    el.textContent = (value == null ? '' : String(value));
+    return el.innerHTML;
+}
+
 async function apiFetch(url) {
     const apiKey = (window.DASHBOARD_API_KEY || '').trim();
     const headers = apiKey ? { 'X-API-Key': apiKey } : {};
@@ -34,9 +40,9 @@ async function updateElectrumServers() {
         servers.forEach(server => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="peer-addr">${server.host || '--'}</td>
-                <td>${server.tcp_port || '--'}</td>
-                <td>${server.ssl_port || '--'}</td>
+                <td class="peer-addr">${esc(server.host || '--')}</td>
+                <td>${esc(server.tcp_port || '--')}</td>
+                <td>${esc(server.ssl_port || '--')}</td>
                 <td>${server.tcp_reachable === true ? 'Yes' : 'No'}</td>
                 <td>${server.ssl_reachable === true ? 'Yes' : 'No'}</td>
             `;
