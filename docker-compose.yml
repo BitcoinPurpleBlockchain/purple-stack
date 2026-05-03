@@ -75,7 +75,7 @@ services:
       PEER_DISCOVERY: "on"
       PEER_ANNOUNCE: "true"
       # REPORT_SERVICES is auto-detected at startup. Set manually only to override.
-      # REPORT_SERVICES: "tcp://your.public.ip:${ELECTRUMX_TCP_PORT:-50001},ssl://your.public.ip:${ELECTRUMX_SSL_PORT:-50002}"
+      # REPORT_SERVICES: "tcp://your.public.ip:${ELECTRUMX_TCP_PORT:-51001},ssl://your.public.ip:${ELECTRUMX_SSL_PORT:-51002}"
       # Bootstrap peers for ElectrumX peer discovery (see .env.example)
       ELECTRUMX_PEERS: "${ELECTRUMX_PEERS:-}"
       INITIAL_CONCURRENT: "2"
