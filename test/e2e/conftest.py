@@ -32,7 +32,10 @@ def _wait_healthy(timeout: float) -> bool:
         try:
             r = requests.get(HEALTH_URL, timeout=3)
             if r.status_code == 200:
-                return True
+                data = r.json()
+                services = data.get('services', {})
+                if services and all(v == 'up' for v in services.values()):
+                    return True
         except requests.RequestException:
             pass
         time.sleep(3)
