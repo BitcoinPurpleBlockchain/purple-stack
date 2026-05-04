@@ -52,7 +52,7 @@ class BitcoinPurple(Bitcoin):
     RPC_PORT = 13495
 
     # Default Electrum peer ports
-    PEER_DEFAULT_PORTS = {'t': '51001', 's': '51002'}
+    PEER_DEFAULT_PORTS = {'t': '50001', 's': '50002'}
 
 
 class BitcoinPurpleTestnet(BitcoinPurple):
