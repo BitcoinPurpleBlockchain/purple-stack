@@ -26,6 +26,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY web-dashboard/ .
 
+# Run as non-root. GID 999 is the common docker group GID on Linux — allows
+# access to the bind-mounted /var/run/docker.sock inside the container.
+RUN groupadd -g 999 docker-host 2>/dev/null || true \
+    && useradd -m -u 1000 -G docker-host app \
+    && chown -R app:app /app
+USER app
+
 # Expose port
 EXPOSE 8080
 

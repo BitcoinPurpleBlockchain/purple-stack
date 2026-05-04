@@ -133,6 +133,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    group_add:
+      - "${DOCKER_GID:-999}"
+
     volumes:
       - ./.bitcoinpurple/bitcoinpurple.conf:/bitcoinpurple-config/bitcoinpurple.conf:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
