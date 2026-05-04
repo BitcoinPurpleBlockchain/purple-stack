@@ -7,7 +7,7 @@ import socket
 import pytest
 
 HOST = 'localhost'
-TCP_PORT = 51001
+TCP_PORT = 50001
 TIMEOUT = 10.0
 MAINNET_GENESIS = '000003823fbf82ea4906cbe214617ce7a70a5da29c19ecb1d65618bcf04ec015'
 

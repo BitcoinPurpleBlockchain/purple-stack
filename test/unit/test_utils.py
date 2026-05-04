@@ -17,14 +17,14 @@ from app import parse_services_ports, parse_addnode_hosts
 
 class TestParseServicesPorts:
     def test_full_services_string(self):
-        s = 'tcp://0.0.0.0:51001,ssl://0.0.0.0:51002,rpc://0.0.0.0:8000'
-        assert parse_services_ports(s) == (51001, 51002)
+        s = 'tcp://0.0.0.0:50001,ssl://0.0.0.0:50002,rpc://0.0.0.0:8000'
+        assert parse_services_ports(s) == (50001, 50002)
 
     def test_tcp_only(self):
-        assert parse_services_ports('tcp://0.0.0.0:51001') == (51001, None)
+        assert parse_services_ports('tcp://0.0.0.0:50001') == (50001, None)
 
     def test_ssl_only(self):
-        assert parse_services_ports('ssl://0.0.0.0:51002') == (None, 51002)
+        assert parse_services_ports('ssl://0.0.0.0:50002') == (None, 50002)
 
     def test_empty_string(self):
         assert parse_services_ports('') == (None, None)
@@ -35,10 +35,10 @@ class TestParseServicesPorts:
         assert ssl is None
 
     def test_whitespace_around_items(self):
-        s = ' tcp://0.0.0.0:51001 , ssl://0.0.0.0:51002 '
+        s = ' tcp://0.0.0.0:50001 , ssl://0.0.0.0:50002 '
         tcp, ssl = parse_services_ports(s)
-        assert tcp == 51001
-        assert ssl == 51002
+        assert tcp == 50001
+        assert ssl == 50002
 
     def test_default_ports_50001_50002(self):
         s = 'tcp://0.0.0.0:50001,ssl://0.0.0.0:50002'

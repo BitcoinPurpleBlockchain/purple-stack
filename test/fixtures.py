@@ -31,15 +31,15 @@ MOCK_ELECTRUMX_STATS = {
     'sessions': 3,
     'peer_discovery': 'on',
     'peer_announce': 'on',
-    'active_servers': [{'host': '1.2.3.4', 'tcp_port': '51001', 'ssl_port': '51002',
+    'active_servers': [{'host': '1.2.3.4', 'tcp_port': '50001', 'ssl_port': '50002',
                         'tcp_reachable': True, 'ssl_reachable': True}],
     'active_servers_count': 1,
     'requests': 0,
     'subs': 0,
     'uptime': 3_600,
     'db_size': 1_073_741_824,
-    'tcp_port': '51001',
-    'ssl_port': '51002',
+    'tcp_port': '50001',
+    'ssl_port': '50002',
     'server_ip': '5.6.7.8',
 }
 

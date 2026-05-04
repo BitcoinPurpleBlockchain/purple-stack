@@ -102,7 +102,7 @@ class TestBitcoinPurpleMainnet:
         assert BitcoinPurple.REORG_LIMIT == 1200
 
     def test_peer_default_ports(self):
-        assert BitcoinPurple.PEER_DEFAULT_PORTS == {'t': '51001', 's': '51002'}
+        assert BitcoinPurple.PEER_DEFAULT_PORTS == {'t': '50001', 's': '50002'}
 
     def test_tx_per_block_positive(self):
         assert BitcoinPurple.TX_PER_BLOCK >= 1
