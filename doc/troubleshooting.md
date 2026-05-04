@@ -60,7 +60,7 @@ netstat -tln | grep 8080   # verify the port is listening on 0.0.0.0
 Peer discovery requires at least one reachable bootstrap server. The stack ships with `bitcoinpurpleblockchain.com` hardcoded — verify it is reachable:
 
 ```bash
-python3 -c "import socket; socket.create_connection(('bitcoinpurpleblockchain.com', 51002), timeout=5); print('OK')"
+python3 -c "import socket; socket.create_connection(('bitcoinpurpleblockchain.com', 50002), timeout=5); print('OK')"
 ```
 
 To add extra bootstrap peers, set `ELECTRUMX_PEERS` in `.env` (see [configuration.md](configuration.md)).

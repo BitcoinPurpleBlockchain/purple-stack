@@ -84,9 +84,9 @@ of what would have been false positives without the current checks:
 inspect any ElectrumX server:
 
 ```bash
-python test/tools/test-server.py localhost:51001   # TCP
-python test/tools/test-server.py localhost:51002   # SSL (auto-detected by port)
-python test/tools/test-server.py myserver.com:51002
+python test/tools/test-server.py localhost:50001   # TCP
+python test/tools/test-server.py localhost:50002   # SSL (auto-detected by port)
+python test/tools/test-server.py myserver.com:50002
 ```
 
 Prints `server.version`, `server.features`, and the latest block height + hash.

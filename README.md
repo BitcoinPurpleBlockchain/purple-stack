@@ -5,7 +5,7 @@ Production-ready Docker stack for **BitcoinPurple (BTCP)** — full node, Electr
 | Service | Description | Default ports |
 |---------|-------------|---------------|
 | **bitcoinpurpled** | BitcoinPurple full node | `13496` P2P |
-| **electrumx** | ElectrumX Electrum protocol server | `51001` TCP · `51002` SSL |
+| **electrumx** | ElectrumX Electrum protocol server | `50001` TCP · `50002` SSL |
 | **dashboard** | Real-time monitoring UI + REST API | `8080` HTTP |
 
 **Requirements:** Docker 20.10+, Docker Compose 2.0+, 64-bit Linux/macOS/WSL2, 4 GB+ RAM, 50 GB+ disk.
@@ -38,8 +38,8 @@ Copy `.env.example` to `.env` before exposing the stack to the internet. The fil
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ELECTRUMX_TCP_PORT` | `51001` | ElectrumX plain TCP port |
-| `ELECTRUMX_SSL_PORT` | `51002` | ElectrumX SSL port |
+| `ELECTRUMX_TCP_PORT` | `50001` | ElectrumX plain TCP port |
+| `ELECTRUMX_SSL_PORT` | `50002` | ElectrumX SSL port |
 | `DASHBOARD_PORT` | `8080` | Web dashboard HTTP port |
 | `DASHBOARD_AUTH_USERNAME` | `admin` | Basic Auth username for external access |
 | `DASHBOARD_AUTH_PASSWORD` | `change-me-now` | Basic Auth password |

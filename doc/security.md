@@ -47,8 +47,8 @@ Certificates are mounted read-only into the container and never rebuilt if they 
 
 ```bash
 sudo ufw allow 13496/tcp   # BitcoinPurple P2P
-sudo ufw allow 51001/tcp   # ElectrumX TCP
-sudo ufw allow 51002/tcp   # ElectrumX SSL
+sudo ufw allow 50001/tcp   # ElectrumX TCP
+sudo ufw allow 50002/tcp   # ElectrumX SSL
 # open 8080 only after configuring auth in .env
 sudo ufw enable
 ```

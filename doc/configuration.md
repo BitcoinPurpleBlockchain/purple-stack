@@ -20,8 +20,8 @@ Copy `.env.example` to `.env` and edit as needed. All variables have defaults an
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ELECTRUMX_TCP_PORT` | `51001` | ElectrumX plain TCP port |
-| `ELECTRUMX_SSL_PORT` | `51002` | ElectrumX SSL port |
+| `ELECTRUMX_TCP_PORT` | `50001` | ElectrumX plain TCP port |
+| `ELECTRUMX_SSL_PORT` | `50002` | ElectrumX SSL port |
 | `DASHBOARD_PORT` | `8080` | Web dashboard external port |
 
 ### Dashboard authentication

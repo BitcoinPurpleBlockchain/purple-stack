@@ -7,8 +7,8 @@ Internet                  Docker host  (network: purple)
    │
    ├── :13496  P2P ──────► bitcoinpurpled
    │                              │ RPC :13495 (internal)
-   ├── :51001  TCP ──────► electrumx ◄───────────────────┘
-   ├── :51002  SSL ──────► electrumx
+   ├── :50001  TCP ──────► electrumx ◄───────────────────┘
+   ├── :50002  SSL ──────► electrumx
    │
    └── :8080   HTTP ─────► dashboard ◄── bitcoinpurpled + electrumx
 ```
@@ -26,8 +26,8 @@ All services communicate over the shared `purple` Docker network using their ser
 | ZMQ rawtx | `bitcoinpurpled` | `28333` | ZMQ pub |
 | ZMQ hashblock | `bitcoinpurpled` | `28334` | ZMQ pub |
 | ZMQ hashtx | `bitcoinpurpled` | `28335` | ZMQ pub |
-| ElectrumX TCP | `electrumx` | `51001` | Electrum |
-| ElectrumX SSL | `electrumx` | `51002` | Electrum (SSL) |
+| ElectrumX TCP | `electrumx` | `50001` | Electrum |
+| ElectrumX SSL | `electrumx` | `50002` | Electrum (SSL) |
 | ElectrumX admin | `electrumx` | `8000` | JSON-RPC |
 | Dashboard | `dashboard` | `8080` | HTTP |
 
@@ -40,8 +40,8 @@ Forward these ports on your router to the server's local IP (`hostname -I | awk 
 | Port | Service | Notes |
 |------|---------|-------|
 | `13496` TCP | BitcoinPurple P2P | Required for node participation |
-| `51001` TCP | ElectrumX plain | Electrum wallet connections |
-| `51002` TCP | ElectrumX SSL | Recommended for public wallets |
+| `50001` TCP | ElectrumX plain | Electrum wallet connections |
+| `50002` TCP | ElectrumX SSL | Recommended for public wallets |
 | `8080` TCP | Dashboard | Only if exposing publicly — configure auth first |
 
 ---
@@ -68,8 +68,8 @@ services:
       ZMQ_HASHBLOCK: "tcp://bitcoinpurpled:28334"
       ZMQ_HASHTX:    "tcp://bitcoinpurpled:28335"
       ELECTRUMX_HOST: electrumx
-      ELECTRUMX_TCP_PORT: "51001"
-      ELECTRUMX_SSL_PORT: "51002"
+      ELECTRUMX_TCP_PORT: "50001"
+      ELECTRUMX_SSL_PORT: "50002"
 ```
 
 > Start `purple-stack` before any dependent stack. The `purple` network is created on first `docker compose up`.
