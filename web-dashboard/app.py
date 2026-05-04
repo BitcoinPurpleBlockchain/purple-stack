@@ -99,6 +99,11 @@ def enforce_external_auth():
         return None
 
     if request.path.startswith('/api/'):
+        # /api/config is also accessible to session-authenticated dashboard users
+        # (external users who logged in via Basic Auth need it to obtain the key
+        # for subsequent API calls made from the dashboard JS).
+        if request.path == '/api/config' and session.get('authenticated'):
+            return None
         if not os.getenv('API_KEY', '').strip():
             return jsonify({'error': 'API key is not configured'}), 503
         if has_valid_api_key():
