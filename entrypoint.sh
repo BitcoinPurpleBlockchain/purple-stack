@@ -68,7 +68,9 @@ fi
 if [ -n "${ELECTRUMX_PEERS:-}" ]; then
     python3 - "${ELECTRUMX_PEERS}" <<'PEERSINJECT'
 import sys, pathlib, re, ast
-peers_new = [p.strip() for p in sys.argv[1].split(',') if p.strip()]
+_PEER_RE = re.compile(r'^[a-zA-Z0-9.\-]+(:\d+)?( [ts])*$')
+peers_new = [p.strip() for p in sys.argv[1].split(',')
+             if p.strip() and _PEER_RE.match(p.strip())]
 for target in [
     '/usr/local/lib/python3.13/dist-packages/electrumx/lib/coins.py',
     '/electrumx/src/electrumx/lib/coins.py',
@@ -115,7 +117,7 @@ if [ ! -f /certs/server.crt ] || [ ! -f /certs/server.key ]; then
     # Try to detect public IP for SAN
     for url in https://icanhazip.com https://ifconfig.me https://api.ipify.org; do
         DETECTED_IP=$(curl -sf --max-time 5 "$url" 2>/dev/null | tr -d '[:space:]')
-        if [ -n "$DETECTED_IP" ]; then
+        if echo "$DETECTED_IP" | grep -qE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
             IP_IDX=$((IP_IDX + 1))
             SAN="${SAN}\nIP.${IP_IDX} = ${DETECTED_IP}"
             echo ">> Including public IP in certificate SAN: ${DETECTED_IP}"
@@ -173,6 +175,9 @@ if [ -n "$TX_STATS" ]; then
         python3 - "$TX_COUNT" "$TX_HEIGHT" <<'TXPATCH'
 import sys, pathlib, re
 tx_count, tx_height = sys.argv[1], sys.argv[2]
+if not (tx_count.isdigit() and tx_height.isdigit()):
+    print('>> ERROR: non-numeric TX stats from RPC, skipping patch')
+    sys.exit(0)
 for target in [
     '/usr/local/lib/python3.13/dist-packages/electrumx/lib/coins.py',
     '/electrumx/src/electrumx/lib/coins.py',
