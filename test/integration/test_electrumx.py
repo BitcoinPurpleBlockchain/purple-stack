@@ -4,14 +4,15 @@ Requires stack to be up (docker compose up -d).
 """
 
 import json
+import os
 import socket
 import ssl
 import pytest
 
 MAINNET_GENESIS = '000003823fbf82ea4906cbe214617ce7a70a5da29c19ecb1d65618bcf04ec015'
 HOST = 'localhost'
-TCP_PORT = 50001
-SSL_PORT = 50002
+TCP_PORT = int(os.getenv('ELECTRUMX_TCP_PORT', '50001'))
+SSL_PORT = int(os.getenv('ELECTRUMX_SSL_PORT', '50002'))
 TIMEOUT = 5.0
 
 
