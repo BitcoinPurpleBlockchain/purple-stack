@@ -6,9 +6,20 @@ function esc(value) {
     return el.innerHTML;
 }
 
-// API fetch helper with optional API key injected from template
+// Lazily fetch the API key once from /api/config and cache it.
+let _apiKeyPromise = null;
+async function _getApiKey() {
+    if (_apiKeyPromise === null) {
+        _apiKeyPromise = fetch('/api/config')
+            .then(r => r.ok ? r.json() : {})
+            .then(d => (d.api_key || '').trim())
+            .catch(() => '');
+    }
+    return _apiKeyPromise;
+}
+
 async function apiFetch(url, options = {}) {
-    const apiKey = (window.DASHBOARD_API_KEY || "").trim();
+    const apiKey = await _getApiKey();
     const headers = { ...(options.headers || {}) };
     if (apiKey) {
         headers["X-API-Key"] = apiKey;

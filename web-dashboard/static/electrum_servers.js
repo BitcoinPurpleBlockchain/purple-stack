@@ -6,8 +6,19 @@ function esc(value) {
     return el.innerHTML;
 }
 
+let _apiKeyPromise = null;
+async function _getApiKey() {
+    if (_apiKeyPromise === null) {
+        _apiKeyPromise = fetch('/api/config')
+            .then(r => r.ok ? r.json() : {})
+            .then(d => (d.api_key || '').trim())
+            .catch(() => '');
+    }
+    return _apiKeyPromise;
+}
+
 async function apiFetch(url) {
-    const apiKey = (window.DASHBOARD_API_KEY || '').trim();
+    const apiKey = await _getApiKey();
     const headers = apiKey ? { 'X-API-Key': apiKey } : {};
     return fetch(url, { headers });
 }

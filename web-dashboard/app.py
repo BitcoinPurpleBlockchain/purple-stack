@@ -4,6 +4,7 @@ Web Dashboard API for BitcoinPurple Node and ElectrumX Server Statistics
 """
 
 from flask import Flask, jsonify, render_template, request, session
+import re
 import requests
 import json
 import os
@@ -133,12 +134,18 @@ def enforce_external_auth():
 
 
 @app.after_request
-def disable_api_cache(response):
-    """Prevent stale API payloads from browser/proxy caches."""
+def apply_response_headers(response):
+    """Add cache-control for API routes and security headers for all responses."""
     if request.path.startswith('/api/'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    )
     return response
 
 # Configuration
@@ -404,7 +411,17 @@ def get_electrumx_stats_cached(force_refresh=False, include_addnode_probes=False
         if not force_refresh and cached is not None and (now - cached_ts) < ttl:
             return copy.deepcopy(cached)
 
-    fresh = get_electrumx_stats(include_addnode_probes=include_addnode_probes)
+        # Guard against concurrent refreshes: return stale data while another
+        # thread is already fetching, rather than pile-on with duplicate calls.
+        if cache.get('refreshing'):
+            return copy.deepcopy(cached) if cached is not None else None
+        cache['refreshing'] = True
+
+    try:
+        fresh = get_electrumx_stats(include_addnode_probes=include_addnode_probes)
+    finally:
+        with lock:
+            cache['refreshing'] = False
 
     with lock:
         if fresh is not None:
@@ -527,20 +544,19 @@ def get_electrumx_stats(include_addnode_probes=False):
         try:
             if not local_tcp_port:
                 raise RuntimeError("SERVICES tcp port not configured")
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
-            sock.connect((ELECTRUMX_RPC_HOST, local_tcp_port))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(5)
+                sock.connect((ELECTRUMX_RPC_HOST, local_tcp_port))
 
-            request = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "server.features",
-                "params": []
-            }
+                request = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "server.features",
+                    "params": []
+                }
 
-            sock.send((json.dumps(request) + '\n').encode())
-            response = sock.recv(4096).decode()
-            sock.close()
+                sock.sendall((json.dumps(request) + '\n').encode())
+                response = sock.recv(4096).decode()
 
             data = json.loads(response)
             if 'result' in data:
@@ -571,20 +587,19 @@ def get_electrumx_stats(include_addnode_probes=False):
         try:
             if not local_tcp_port:
                 raise RuntimeError("SERVICES tcp port not configured")
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
-            sock.connect((ELECTRUMX_RPC_HOST, local_tcp_port))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(5)
+                sock.connect((ELECTRUMX_RPC_HOST, local_tcp_port))
 
-            request = {
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "server.peers.subscribe",
-                "params": []
-            }
+                request = {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "server.peers.subscribe",
+                    "params": []
+                }
 
-            sock.send((json.dumps(request) + '\n').encode())
-            response = sock.recv(65535).decode()
-            sock.close()
+                sock.sendall((json.dumps(request) + '\n').encode())
+                response = sock.recv(65535).decode()
 
             data = json.loads(response)
             if 'result' in data and isinstance(data['result'], list):
@@ -601,7 +616,7 @@ def get_electrumx_stats(include_addnode_probes=False):
                             tcp_port = feat[1:]
                         if isinstance(feat, str) and feat.startswith('s') and feat[1:].isdigit():
                             ssl_port = feat[1:]
-                    if host:
+                    if host and re.match(r'^[a-zA-Z0-9.\-]+$', host):
                         peers.append({
                             'host': host,
                             'tcp_port': tcp_port,
@@ -796,9 +811,10 @@ def get_electrumx_stats(include_addnode_probes=False):
         try:
             if not local_tcp_port:
                 raise RuntimeError("SERVICES tcp port not configured")
+            _port_str = str(int(local_tcp_port))  # guard against shell injection
             result = subprocess.run(
                 ['docker', 'exec', 'btcp-electrumx', 'sh', '-c',
-                 f'netstat -an 2>/dev/null | grep ":{local_tcp_port}.*ESTABLISHED" | wc -l'],
+                 f'netstat -an 2>/dev/null | grep ":{_port_str}.*ESTABLISHED" | wc -l'],
                 capture_output=True,
                 text=True,
                 timeout=2
@@ -814,20 +830,26 @@ def get_electrumx_stats(include_addnode_probes=False):
         print(f"ElectrumX stats error: {e}")
         return None
 
+@app.route('/api/config')
+def api_config():
+    """Return the API key for authenticated callers (used by the dashboard JS)."""
+    return jsonify({'api_key': os.getenv('API_KEY', '').strip()})
+
+
 @app.route('/')
 def index():
     """Serve main dashboard page"""
-    return render_template('index.html', api_key=os.getenv('API_KEY', '').strip())
+    return render_template('index.html')
 
 @app.route('/peers')
 def peers():
     """Serve peers page"""
-    return render_template('peers.html', api_key=os.getenv('API_KEY', '').strip())
+    return render_template('peers.html')
 
 @app.route('/electrum-servers')
 def electrum_servers():
     """Serve Electrum active servers page"""
-    return render_template('electrum_servers.html', api_key=os.getenv('API_KEY', '').strip())
+    return render_template('electrum_servers.html')
 
 @app.route('/api/bitcoinpurple/info')
 def bitcoinpurple_info():
@@ -850,7 +872,8 @@ def bitcoinpurple_info():
 
         return jsonify(data)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/bitcoinpurple/block-height')
 def bitcoinpurple_block_height():
@@ -868,7 +891,8 @@ def bitcoinpurple_block_height():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 
 @app.route('/api/bitcoinpurple/network-hashrate')
@@ -888,7 +912,8 @@ def bitcoinpurple_network_hashrate():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 
 @app.route('/api/bitcoinpurple/difficulty')
@@ -910,7 +935,8 @@ def bitcoinpurple_difficulty():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 
 @app.route('/api/bitcoinpurple/coinbase-subsidy')
@@ -930,7 +956,8 @@ def bitcoinpurple_coinbase_subsidy():
         payload['timestamp'] = datetime.now().isoformat()
         return jsonify(payload)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 
 @app.route('/api/bitcoinpurple/peers')
@@ -958,7 +985,8 @@ def bitcoinpurple_peers():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/bitcoinpurple/blocks/recent')
 def recent_blocks():
@@ -988,7 +1016,8 @@ def recent_blocks():
 
         return jsonify({'blocks': blocks})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/electrumx/stats')
 def electrumx_stats():
@@ -1028,7 +1057,8 @@ def electrumx_stats():
             })
         return jsonify({'error': 'Cannot connect to ElectrumX'}), 500
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/electrumx/servers')
 def electrumx_servers():
@@ -1045,7 +1075,8 @@ def electrumx_servers():
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/system/resources')
 def system_resources():
@@ -1075,7 +1106,8 @@ def system_resources():
 
         return jsonify(data)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"{request.path} error: {e}")
+        return jsonify({'error': 'internal error'}), 500
 
 @app.route('/api/health')
 def health():
