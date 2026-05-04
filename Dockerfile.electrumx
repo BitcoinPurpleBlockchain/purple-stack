@@ -20,10 +20,18 @@ for target in [
     '/electrumx/src/electrumx/lib/coins.py',
 ]:
     p = pathlib.Path(target)
-    if p.exists():
-        s = p.read_text()
-        if 'class BitcoinPurple(Bitcoin):' not in s:
-            p.write_text(s + body)
+    if not p.exists():
+        continue
+    s = p.read_text()
+    if 'class BitcoinPurple(Bitcoin):' in s:
+        # Replace existing class definitions so rebuilds pick up changes.
+        s = re.sub(
+            r'\nclass BitcoinPurple\(Bitcoin\):.*',
+            '',
+            s,
+            flags=re.DOTALL,
+        )
+    p.write_text(s + body)
 
 print('>> Patched ElectrumX with BitcoinPurple coin classes')
 PATCH

@@ -561,7 +561,13 @@ def get_electrumx_stats(include_addnode_probes=False):
                 }
 
                 sock.sendall((json.dumps(request) + '\n').encode())
-                response = sock.recv(4096).decode()
+                buf = b''
+                while b'\n' not in buf:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    buf += chunk
+                response = buf.split(b'\n', 1)[0].decode()
 
             data = json.loads(response)
             if 'result' in data:
@@ -604,7 +610,13 @@ def get_electrumx_stats(include_addnode_probes=False):
                 }
 
                 sock.sendall((json.dumps(request) + '\n').encode())
-                response = sock.recv(65535).decode()
+                buf = b''
+                while b'\n' not in buf:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    buf += chunk
+                response = buf.split(b'\n', 1)[0].decode()
 
             data = json.loads(response)
             if 'result' in data and isinstance(data['result'], list):
