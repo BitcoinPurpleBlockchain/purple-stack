@@ -22,10 +22,7 @@ dbcache=450
 maxmempool=300
 mempoolexpiry=336
 
-# RPC
-# ⚠ Change rpcuser and rpcpassword before starting the node.
-rpcuser=your_username
-rpcpassword=your_strong_password
+# RPC — credentials are set via RPC_USER / RPC_PASSWORD in .env
 server=1
 rpcport=13495
 rpcbind=0.0.0.0

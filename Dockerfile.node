@@ -29,7 +29,10 @@ RUN chmod +x /usr/local/bin/bitcoinpurpled \
 
 RUN mkdir -p /root/.bitcoinpurple
 
+COPY node-entrypoint.sh /usr/local/bin/node-entrypoint.sh
+RUN chmod +x /usr/local/bin/node-entrypoint.sh
+
 # Mainnet: 13495 (RPC), 13496 (P2P) — Testnet: 23495 (RPC), 23496 (P2P)
 EXPOSE 13495 13496 23495 23496
 
-CMD ["bitcoinpurpled", "-printtoconsole=1"]
+CMD ["/usr/local/bin/node-entrypoint.sh"]

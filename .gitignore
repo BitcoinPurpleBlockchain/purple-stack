@@ -9,9 +9,9 @@
 /electrumx-data/*
 !/electrumx-data/.gitkeep
 
-# BitcoinPurple node data (keep only the config file)
+# BitcoinPurple node data (conf is generated at container startup from .example + .env)
 /.bitcoinpurple/*
-!/.bitcoinpurple/bitcoinpurple.conf
+!/.bitcoinpurple/bitcoinpurple.conf.example
 
 # Logs
 *.log
