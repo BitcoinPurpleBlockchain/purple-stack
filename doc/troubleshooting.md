@@ -57,10 +57,21 @@ netstat -tln | grep 8080   # verify the port is listening on 0.0.0.0
 
 ## ElectrumX not discovering peers
 
-Peer discovery requires at least one reachable bootstrap server. The stack ships with `bitcoinpurpleblockchain.com` hardcoded — verify it is reachable:
+Peer discovery requires at least one reachable bootstrap server. The stack ships with five hardcoded bootstrap peers (see `entrypoint.sh` `BUILTIN_PEERS`). Verify at least one is reachable:
 
 ```bash
 python3 -c "import socket; socket.create_connection(('bitcoinpurpleblockchain.com', 50002), timeout=5); print('OK')"
 ```
 
 To add extra bootstrap peers, set `ELECTRUMX_PEERS` in `.env` (see [configuration.md](configuration.md)).
+
+---
+
+## Node Console shows "method not allowed"
+
+The `/console` page only exposes read-only RPC methods. Write operations (`sendrawtransaction`, `generate`, etc.) are intentionally blocked. Use `bitcoinpurple-cli` directly inside the container for write operations:
+
+```bash
+docker exec bitcoinpurple-node bitcoinpurple-cli \
+  -rpcuser=USER -rpcpassword=PASS <command>
+```

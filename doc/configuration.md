@@ -43,7 +43,7 @@ Copy `.env.example` to `.env` and edit as needed. All variables have defaults an
 # ELECTRUMX_PEERS=
 ```
 
-`bitcoinpurpleblockchain.com` is hardcoded as the network bootstrap peer — servers discover each other automatically once it is reachable. Set `ELECTRUMX_PEERS` only to add extra bootstrap nodes.
+Five bootstrap peers are hardcoded in `entrypoint.sh` (`BUILTIN_PEERS`), including `bitcoinpurpleblockchain.com`. Servers discover each other automatically once at least one bootstrap is reachable. Set `ELECTRUMX_PEERS` only to add extra bootstrap nodes beyond the built-in list.
 
 ---
 

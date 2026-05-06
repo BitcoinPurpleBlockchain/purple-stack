@@ -196,6 +196,7 @@ body {
     background: rgba(99, 102, 241, 0.05);
     border-radius: 8px;
     border: 1px solid rgba(99, 102, 241, 0.2);
+    text-align: left;
 }
 
 .stat-link {
@@ -751,6 +752,7 @@ canvas {
     /* Row layout: label left (secondary), value right (primary) */
     .stat-item {
         padding: 10px 12px;
+        min-height: 52px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -764,40 +766,23 @@ canvas {
         letter-spacing: 0;
         flex-shrink: 0;
         max-width: 55%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-value {
         font-size: 17px;
         text-align: right;
         min-width: 0;
-        word-break: break-word;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Hide absolute arrow — whole item is the tap target on mobile */
     .stat-link::after {
         display: none;
-    }
-
-    /* Full-width items (Network Hashrate, Server IP): column layout */
-    .stat-grid .full-width,
-    .electrumx-grid .full-width {
-        display: block;
-        padding: 12px;
-    }
-
-    .stat-grid .full-width .stat-label,
-    .electrumx-grid .full-width .stat-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-        max-width: none;
-    }
-
-    .stat-grid .full-width .stat-value,
-    .electrumx-grid .full-width .stat-value {
-        font-size: 22px;
-        text-align: left;
     }
 
     /* Resource bars: label + % on row 1, bar full width on row 2 */
@@ -876,6 +861,681 @@ canvas {
         border-radius: 10px;
         font-size: 12px;
     }
+}
+
+/* ─── Console ───────────────────────────────────────────────────────────── */
+
+.console-card {
+    margin-top: 24px;
+}
+
+.console-card:hover {
+    transform: none;
+}
+
+.console-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.console-methods-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.console-methods-link:hover {
+    text-decoration: underline;
+}
+
+.console-methods-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.console-method-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 2px 8px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 4px;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.console-method-tag:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.console-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.console-prompt {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.console-input {
+    flex: 1;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.console-input:focus {
+    border-color: var(--primary-color);
+}
+
+.console-run-btn {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.console-run-btn:hover {
+    opacity: 0.85;
+}
+
+.console-run-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.console-clear-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.console-clear-btn:hover {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.console-output {
+    background: #0a0f1e;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    min-height: 120px;
+    max-height: 420px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.console-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-bottom: 2px;
+}
+
+.console-line--cmd {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.console-line--result {
+    color: #4ade80;
+}
+
+.console-line--error {
+    color: var(--danger-color);
+}
+
+.console-line--info {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.console-line--sep {
+    border-top: 1px solid var(--border-color);
+    margin: 8px 0;
+}
+
+.console-output--tall {
+    max-height: 65vh;
+}
+
+/* Console header actions */
+.console-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.console-help-btn {
+    padding: 6px 14px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+}
+
+.console-help-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+/* Help panel */
+.console-help-panel {
+    margin-bottom: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.console-help-search-wrap {
+    padding: 10px 12px;
+    background: rgba(99, 102, 241, 0.07);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.console-help-search {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.console-help-search:focus {
+    border-color: var(--primary-color);
+}
+
+.console-help-table-wrap {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.console-help-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.console-help-table thead {
+    background: rgba(99, 102, 241, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.console-help-table th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.console-help-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    vertical-align: top;
+}
+
+.console-help-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+td.help-cmd {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--primary-color);
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+td.help-cmd:hover {
+    text-decoration: underline;
+}
+
+td.help-desc {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+td.help-usage {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #4ade80;
+    white-space: nowrap;
+}
+
+/* Input wrap (relative container for autocomplete) */
+.console-input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.console-input-wrap .console-form {
+    margin-bottom: 0;
+}
+
+/* Autocomplete dropdown */
+.console-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--bg-secondary);
+    border: 1px solid var(--primary-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    box-shadow: var(--shadow-lg);
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.console-ac-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.console-ac-item:hover,
+.console-ac-item--active {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.console-ac-name {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.console-ac-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ─── Featured & Nav stat items ─────────────────────────────────────────── */
+
+/* Hashrate: full-width, same base as other stat-items */
+.stat-item--featured {
+    border-color: rgba(99, 102, 241, 0.35);
+}
+
+.stat-featured-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-featured-icon {
+    width: 44px;
+    height: 44px;
+    stroke: var(--primary-color);
+    opacity: 0.35;
+    flex-shrink: 0;
+}
+
+.stat-value--gradient {
+    font-size: 24px; /* match base .stat-value */
+}
+
+/* Nav cards: Connections, Active Servers, Console */
+.stat-item--nav {
+    display: grid;
+    grid-template-columns: 40px 1fr 20px;
+    align-items: center;
+    gap: 0 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    border-color: rgba(99, 102, 241, 0.2);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.stat-item--nav:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-2px);
+}
+
+.stat-nav-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.stat-nav-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--primary-color);
+}
+
+.stat-nav-body {
+    min-width: 0;
+}
+
+.stat-nav-body .stat-label {
+    margin-bottom: 4px;
+}
+
+.stat-nav-body .stat-value {
+    font-size: 22px;
+}
+
+.stat-nav-arrow {
+    font-size: 18px;
+    color: var(--primary-color);
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.2s;
+    justify-self: end;
+}
+
+.stat-item--nav:hover .stat-nav-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+}
+
+/* Mobile overrides for featured + nav items:
+   collapse to the same label-left / value-right row as regular stat-items */
+@media (max-width: 480px) {
+    /* Featured card: same label-left / value-right row as regular stat-items */
+    .stat-item--featured {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .stat-featured-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .stat-featured-inner > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .stat-featured-icon {
+        display: none;
+    }
+    .stat-value--gradient {
+        font-size: 17px;
+        text-align: right;
+    }
+
+    /* Nav cards: same flex row, hide icon and arrow */
+    .stat-item--nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .stat-nav-icon {
+        display: none;
+    }
+    .stat-nav-body {
+        display: contents; /* unwrap so label/value are flex children */
+    }
+    .stat-nav-arrow {
+        display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE & TOUCH REFINEMENTS
+   These rules appear after the base responsive blocks so cascade handles
+   overrides cleanly — no !important needed.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Touch devices: disable hover animations (prevents tap-flash) ─────── */
+@media (hover: none) {
+    .card:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+    }
+    .stat-link:hover {
+        transform: translateY(0);
+        background: rgba(99, 102, 241, 0.05);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+    .back-button:hover {
+        transform: none;
+    }
+    .console-card:hover {
+        transform: none;
+        box-shadow: var(--shadow);
+    }
+}
+
+/* ── 2. Back button: "← Back to Dashboard" → "← Back" on phones ─────────── */
+.back-short { display: none; }
+
+@media (max-width: 480px) {
+    .back-long  { display: none; }
+    .back-short { display: inline; }
+    .back-button {
+        min-height: 44px;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+}
+
+/* Ensure 44px touch target on larger screens too */
+.back-button {
+    min-height: 44px;
+}
+
+/* ── 3. iOS input zoom prevention (≥16 px stops auto-zoom on focus) ──────── */
+@media (max-width: 768px) {
+    .console-input,
+    .console-help-search {
+        font-size: 16px;
+    }
+}
+
+/* ── 4. Tab bar: scrolling horizontal strip instead of wrapping grid ──────── */
+@media (max-width: 480px) {
+    .tab-nav {
+        flex-wrap: nowrap;      /* override flex-wrap: wrap */
+        overflow-x: auto;       /* override overflow-x: hidden */
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 5px;
+        gap: 5px;
+    }
+    .tab-nav::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+        flex: 0 0 auto;         /* override flex: 1 1 40% */
+        scroll-snap-align: start;
+        padding: 10px 16px;
+        font-size: 13px;
+        min-height: 40px;
+        border-radius: 8px;
+    }
+}
+
+/* ── 5. (removed: stat-grid-3col .full-width override now handled by featured card rules) ── */
+
+/* ── 6. Tables: smooth iOS momentum scroll ───────────────────────────────── */
+.table-container {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Peers table: on small phones only keep essential columns */
+@media (max-width: 480px) {
+    /* Hide Version, Connection Time, Data Sent — keep IP, Direction, Received */
+    .peers-table th:nth-child(3),
+    .peers-table td:nth-child(3),
+    .peers-table th:nth-child(4),
+    .peers-table td:nth-child(4),
+    .peers-table th:nth-child(5),
+    .peers-table td:nth-child(5) {
+        display: none;
+    }
+    .peers-table th:nth-child(6),
+    .peers-table td:nth-child(6) {
+        /* Data Received → renamed "Received" via CSS doesn't work, but column stays */
+    }
+}
+
+/* ── 7. Console: mobile-specific layout ──────────────────────────────────── */
+
+/* Card header stacks vertically on phones */
+@media (max-width: 480px) {
+    .console-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .console-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .console-card {
+        margin-top: 10px;
+    }
+}
+
+/* Input form: wraps to two rows — [input full-width] then [Run] [Clear] */
+@media (max-width: 480px) {
+    .console-form {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .console-prompt {
+        display: none; /* reclaim horizontal space */
+    }
+    .console-input {
+        flex: 1 1 100%;
+        order: 1;
+        font-size: 16px;  /* iOS zoom prevention */
+        padding: 11px 12px;
+        border-radius: 8px;
+    }
+    .console-run-btn {
+        flex: 1;
+        order: 2;
+        padding: 11px 16px;
+        min-height: 44px;
+    }
+    .console-clear-btn {
+        flex: 1;
+        order: 3;
+        padding: 11px 16px;
+        min-height: 44px;
+    }
+}
+
+/* Console output: dynamic height based on viewport */
+@media (max-width: 480px) {
+    .console-output--tall {
+        max-height: calc(100vh - 380px);
+        min-height: 200px;
+    }
+}
+
+/* Autocomplete: shorter on phones, bigger tap targets */
+@media (max-width: 480px) {
+    .console-autocomplete {
+        max-height: 180px;
+    }
+    .console-ac-item {
+        padding: 10px 12px;
+        min-height: 44px;
+        align-items: center;
+    }
+}
+
+/* Help table: on phones hide Usage column — too wide for 320–480px */
+@media (max-width: 600px) {
+    .console-help-table th:nth-child(3),
+    .console-help-table td:nth-child(3) {
+        display: none;
+    }
+    .console-help-table-wrap {
+        -webkit-overflow-scrolling: touch;
+        max-height: 240px;
+    }
+    td.help-cmd {
+        vertical-align: middle;
+    }
+    td.help-desc {
+        font-size: 12px;
+    }
+}
+
+/* Help button: touch target */
+.console-help-btn {
+    min-height: 36px;
 }
 
 /* Loading Animation */

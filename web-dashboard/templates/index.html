@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BitcoinPurple & ElectrumX Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=13">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=15">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='bitcoinpurple.png') }}">
 </head>
 <body>
@@ -82,14 +82,6 @@
                             <div class="stat-label">Difficulty</div>
                             <div class="stat-value" id="difficulty">--</div>
                         </div>
-                        <a href="/peers" class="stat-item stat-link">
-                            <div class="stat-label">Connections</div>
-                            <div class="stat-value" id="connections">--</div>
-                        </a>
-                        <div class="stat-item full-width">
-                            <div class="stat-label">Network Hashrate</div>
-                            <div class="stat-value" id="networkHashrate">--</div>
-                        </div>
                         <div class="stat-item">
                             <div class="stat-label">Network</div>
                             <div class="stat-value" id="network">--</div>
@@ -102,6 +94,50 @@
                             <div class="stat-label">Version</div>
                             <div class="stat-value" id="nodeVersion">--</div>
                         </div>
+
+                        <!-- Hashrate: featured metric -->
+                        <div class="stat-item stat-item--featured">
+                            <div class="stat-featured-inner">
+                                <div>
+                                    <div class="stat-label">Network Hashrate</div>
+                                    <div class="stat-value" id="networkHashrate">--</div>
+                                </div>
+                                <svg class="stat-featured-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Nav cards: Connections, Console -->
+                        <a href="/peers" class="stat-item stat-item--nav">
+                            <div class="stat-nav-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <div class="stat-nav-body">
+                                <div class="stat-label">Connections</div>
+                                <div class="stat-value" id="connections">--</div>
+                            </div>
+                            <div class="stat-nav-arrow">→</div>
+                        </a>
+
+                        <a href="/console" class="stat-item stat-item--nav">
+                            <div class="stat-nav-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="4 17 10 11 4 5"/>
+                                    <line x1="12" y1="19" x2="20" y2="19"/>
+                                </svg>
+                            </div>
+                            <div class="stat-nav-body">
+                                <div class="stat-label">Console</div>
+                                <div class="stat-value">CLI</div>
+                            </div>
+                            <div class="stat-nav-arrow">→</div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -127,10 +163,21 @@
                             <div class="stat-label">Database Size</div>
                             <div class="stat-value" id="dbSize">--</div>
                         </div>
-                        <div class="stat-item full-width">
-                            <div class="stat-label">Server IP</div>
-                            <div class="stat-value" id="serverIP">--</div>
+                        <!-- Server IP: featured metric -->
+                        <div class="stat-item stat-item--featured">
+                            <div class="stat-featured-inner">
+                                <div>
+                                    <div class="stat-label">Server IP</div>
+                                    <div class="stat-value" id="serverIP">--</div>
+                                </div>
+                                <svg class="stat-featured-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                </svg>
+                            </div>
                         </div>
+
                         <div class="stat-item">
                             <div class="stat-label">TCP Port</div>
                             <div class="stat-value" id="tcpPort">--</div>
@@ -139,10 +186,20 @@
                             <div class="stat-label">SSL Port</div>
                             <div class="stat-value" id="sslPort">--</div>
                         </div>
-                        <a href="/electrum-servers" class="stat-item stat-link">
-                            <div class="stat-label">Active Servers</div>
-                            <div class="stat-value" id="activeServersCount">--</div>
-                            <span class="stat-link-hint">View all →</span>
+                        <a href="/electrum-servers" class="stat-item stat-item--nav">
+                            <div class="stat-nav-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="8" rx="2"/>
+                                    <rect x="2" y="14" width="20" height="8" rx="2"/>
+                                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                                </svg>
+                            </div>
+                            <div class="stat-nav-body">
+                                <div class="stat-label">Active Servers</div>
+                                <div class="stat-value" id="activeServersCount">--</div>
+                            </div>
+                            <div class="stat-nav-arrow">→</div>
                         </a>
                     </div>
                 </div>
@@ -212,6 +269,6 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='dashboard.js') }}?v=15"></script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}?v=17"></script>
 </body>
 </html>
