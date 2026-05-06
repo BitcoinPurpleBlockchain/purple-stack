@@ -23,9 +23,22 @@ hostname -I | awk '{print $1}'
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Main Dashboard | `/` | System resources, node stats, ElectrumX stats, mempool, recent blocks |
+| Main Dashboard | `/` | Tabbed view: system resources, node stats, ElectrumX stats, mempool, recent blocks |
+| Node Console | `/console` | Read-only `bitcoinpurple-cli` terminal with autocomplete and command help |
 | Network Peers | `/peers` | Full peer list with traffic stats, auto-refreshes every 10 s |
 | Electrum Servers | `/electrum-servers` | Discovered ElectrumX peers with TCP/SSL reachability |
+
+### Dashboard tabs
+
+The main page (`/`) has five tabs that persist across reloads via `localStorage` and `#hash`:
+
+| Tab | Contents |
+|-----|----------|
+| System Resources | CPU, memory, and disk usage with progress bars |
+| BitcoinPurple Node | Block height, difficulty, network, sync progress, version, hashrate, connections → `/peers`, console → `/console` |
+| ElectrumX Server | Version, uptime, DB size, server IP, TCP/SSL ports, active servers → `/electrum-servers` |
+| Mempool | Transaction count, total size, memory usage |
+| Recent Blocks | Last 10 blocks: height, hash, time, size, tx count |
 
 ---
 
@@ -42,7 +55,7 @@ hostname -I | awk '{print $1}'
 # From the project root:
 ./generate-api-key.sh    # prints a secure random key
 cp .env.example .env
-nano .env                # fill in the three variables
+nano .env                # fill in the variables
 ```
 
 `.env` variables:
@@ -82,15 +95,51 @@ curl -H "Authorization: Bearer <your-key>" http://<host>:8080/api/health
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/health` | Overall service health (`bitcoinpurple` + `electrumx` status) |
+| `GET` | `/api/config` | Returns the configured `API_KEY` (requires session or API key auth) |
 | `GET` | `/api/system/resources` | CPU, memory, and disk usage |
 | `GET` | `/api/bitcoinpurple/info` | Node info: blockchain, network, mining, mempool |
 | `GET` | `/api/bitcoinpurple/block-height` | Current block height |
 | `GET` | `/api/bitcoinpurple/network-hashrate` | Network hashrate in H/s |
 | `GET` | `/api/bitcoinpurple/difficulty` | Current network difficulty |
+| `GET` | `/api/bitcoinpurple/coinbase-subsidy` | Current block subsidy in BTCP |
 | `GET` | `/api/bitcoinpurple/peers` | Detailed peer list with traffic stats |
 | `GET` | `/api/bitcoinpurple/blocks/recent` | Last 10 blocks (height, hash, time, size, tx count) |
-| `GET` | `/api/electrumx/stats` | ElectrumX version, uptime, DB size, active servers |
+| `GET` | `/api/electrumx/stats` | ElectrumX version, uptime, DB size, IP, ports, active servers |
 | `GET` | `/api/electrumx/servers` | Discovered ElectrumX peers with TCP/SSL reachability |
+| `POST` | `/api/cli` | Execute a read-only `bitcoinpurple-cli` command (see below) |
+| `GET` | `/api/cli/methods` | List all methods allowed by `/api/cli` |
+
+### `/api/cli` — Node Console API
+
+Executes a whitelisted read-only RPC method against the node. The method must be in the
+`CLI_READONLY_METHODS` frozenset (see `app.py`). Write operations are not permitted.
+
+**Request:**
+```json
+{ "method": "getblockchaininfo", "params": [] }
+```
+
+**Success response:**
+```json
+{ "result": { ... } }
+```
+
+**RPC error response** (HTTP 200):
+```json
+{ "rpc_error": { "code": -5, "message": "Invalid address" } }
+```
+
+**Allowed methods (40+):**
+
+| Category | Methods |
+|----------|---------|
+| Blockchain | `getbestblockhash`, `getblock`, `getblockchaininfo`, `getblockcount`, `getblockfilter`, `getblockhash`, `getblockheader`, `getblockstats`, `getchaintips`, `getchaintxstats`, `getdifficulty` |
+| Mempool | `getmempoolancestors`, `getmempooldescendants`, `getmempoolentry`, `getmempoolinfo`, `getrawmempool` |
+| UTXO / TX | `gettxout`, `gettxoutproof`, `gettxoutsetinfo`, `getrawtransaction`, `decoderawtransaction`, `decodescript`, `verifytxoutproof` |
+| Network | `getnetworkinfo`, `getpeerinfo`, `getnettotals`, `getnetworkhashps`, `getconnectioncount`, `getaddednodeinfo`, `listbanned` |
+| Mining | `getmininginfo`, `estimatesmartfee`, `estimaterawfee`, `getblocksubsidy` |
+| Address | `validateaddress`, `getaddressinfo`, `verifymessage` |
+| Node | `uptime`, `getindexinfo`, `logging` |
 
 ### Example calls
 
@@ -108,6 +157,11 @@ curl "$BASE/api/bitcoinpurple/block-height" | jq
 # Full node info
 curl "$BASE/api/bitcoinpurple/info" | jq
 
+# Run a CLI command
+curl -X POST "$BASE/api/cli" \
+  -H "Content-Type: application/json" \
+  -d '{"method":"getblockchaininfo","params":[]}' | jq
+
 # ElectrumX stats
 curl "$BASE/api/electrumx/stats" | jq
 
@@ -119,39 +173,33 @@ curl "$BASE/api/system/resources" | jq
 
 | Code | Body | Cause |
 |------|------|-------|
+| `400` | `{"error":"method is required"}` | Missing `method` in `/api/cli` body |
 | `401` | `{"error":"Valid API key required"}` | Missing or wrong API key |
+| `403` | `{"error":"Method \"...\" is not in the allowed read-only list"}` | `/api/cli` blocked method |
 | `503` | `{"error":"API key is not configured"}` | `API_KEY` not set in `.env` |
 
 ---
 
-## Test Suite (`test_api.py`)
+## Test suite
 
-A self-contained pytest suite that verifies the API without a running node or ElectrumX (all backend calls are mocked). It also tests real authentication flows using the `API_KEY` from your `.env`.
+Tests live in `test/` — see [`test/README.md`](../test/README.md) for full details.
 
-**Install dependencies:**
 ```bash
-pip install pytest flask flask-cors requests psutil python-dateutil
+# Unit tests — offline, no Docker needed
+pytest test/unit/ -v
+
+# Integration tests — requires docker compose up -d
+pytest test/integration/ -v
 ```
-
-**Run all tests:**
-```bash
-python3 -m pytest test_api.py -v
-```
-
-**Test groups:**
-
-| Group | What is tested |
-|-------|---------------|
-| `TestApiKeyAuth` | No key → 401; valid `X-API-Key` passes; valid `Bearer` passes; wrong key → 401; LAN IP bypasses auth; all 11 `/api/*` routes block anonymous external requests |
-| `TestApiEndpoints` | JSON structure and key fields for every endpoint |
-| `TestCacheHeaders` | Every `/api/*` response carries `Cache-Control: no-store` and `Pragma: no-cache` |
-
-Auth tests are automatically skipped if `.env` is missing or `API_KEY` is still the placeholder value.
 
 ---
 
-## Technology Stack
+## Technology stack
 
-- **Backend:** Python 3.11, Flask
-- **Frontend:** HTML5, CSS3, vanilla JavaScript, Chart.js
-- **Containerized:** Dockerfile.dashboard, port 8080
+| Layer | Details |
+|-------|---------|
+| Backend | Python 3.11, Flask |
+| Frontend | HTML5, CSS3 (custom responsive design), vanilla JavaScript |
+| Pages | `index.html`, `console.html`, `peers.html`, `electrum_servers.html` |
+| Static assets | `style.css`, `dashboard.js`, `console.js`, `peers.js`, `electrum_servers.js`, `bitcoinpurple.png` (favicon) |
+| Container | `Dockerfile.dashboard`, port `8080` |

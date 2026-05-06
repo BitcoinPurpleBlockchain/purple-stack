@@ -80,7 +80,7 @@ pytest test/integration/ -v         # requires docker compose up -d
 | [doc/networking.md](doc/networking.md) | Architecture, internal endpoints, port forwarding, external stacks |
 | [doc/security.md](doc/security.md) | Auth model, SSL certificates, firewall |
 | [doc/troubleshooting.md](doc/troubleshooting.md) | Common issues and fixes |
-| [web-dashboard/README.md](web-dashboard/README.md) | Dashboard features and REST API reference |
+| [web-dashboard/README.md](web-dashboard/README.md) | Dashboard pages, console, REST API reference |
 | [technical-data.md](technical-data.md) | Full BTCP chain parameters reference |
 | [test/README.md](test/README.md) | Test suite: unit, integration, e2e |
 

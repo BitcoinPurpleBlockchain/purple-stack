@@ -29,7 +29,7 @@ All services communicate over the shared `purple` Docker network using their ser
 | ElectrumX TCP | `electrumx` | `50001` | Electrum |
 | ElectrumX SSL | `electrumx` | `50002` | Electrum (SSL) |
 | ElectrumX admin | `electrumx` | `8000` | JSON-RPC |
-| Dashboard | `dashboard` | `8080` | HTTP |
+| Dashboard | `dashboard` | `8080` | HTTP (pages: `/`, `/console`, `/peers`, `/electrum-servers`; API: `/api/*`) |
 
 ---
 
