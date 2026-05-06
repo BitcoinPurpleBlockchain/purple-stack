@@ -1,3 +1,19 @@
+# ── Stage 1: fetch binaries ───────────────────────────────────────────────────
+FROM ubuntu:22.04 AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /daemon
+COPY daemon/ ./
+
+# Download only if binaries are missing (skipped when already present or cached)
+RUN if [ ! -f ./bitcoinpurpled ] || [ ! -f ./bitcoinpurple-cli ]; then \
+        chmod +x ./download-binaries.sh && ./download-binaries.sh; \
+    fi
+
+# ── Stage 2: final image ──────────────────────────────────────────────────────
 FROM ubuntu:22.04
 
 # libstdc++6 is the only runtime dep — all other libraries are statically linked
@@ -5,8 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY daemon/bitcoinpurpled    /usr/local/bin/
-COPY daemon/bitcoinpurple-cli /usr/local/bin/
+COPY --from=builder /daemon/bitcoinpurpled    /usr/local/bin/
+COPY --from=builder /daemon/bitcoinpurple-cli /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/bitcoinpurpled \
              /usr/local/bin/bitcoinpurple-cli
