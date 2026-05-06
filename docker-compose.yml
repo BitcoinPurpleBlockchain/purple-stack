@@ -23,6 +23,10 @@ services:
       #   bitcoinpurpled:28334  (ZMQ hashblock)
       #   bitcoinpurpled:28335  (ZMQ hashtx)
 
+    environment:
+      RPC_USER: "${RPC_USER:-}"
+      RPC_PASSWORD: "${RPC_PASSWORD:-}"
+
     logging:
       driver: json-file
       options:
@@ -32,13 +36,6 @@ services:
     volumes:
       # Mount .bitcoinpurple folder (contains config and blockchain data)
       - ./.bitcoinpurple:/root/.bitcoinpurple
-
-    command: >
-      bitcoinpurpled
-      -conf=/root/.bitcoinpurple/bitcoinpurple.conf
-      -datadir=/root/.bitcoinpurple
-      -daemon=0
-      -printtoconsole=1
 
   electrumx:
     build:
@@ -63,8 +60,8 @@ services:
       COIN: "BitcoinPurple"  # Always "BitcoinPurple" for both networks
       NET: "mainnet"
 
-      # NOTE: RPC credentials are automatically read from bitcoinpurple.conf
-      # No need to configure DAEMON_URL manually anymore!
+      RPC_USER: "${RPC_USER:-}"
+      RPC_PASSWORD: "${RPC_PASSWORD:-}"
 
       SERVICES: "tcp://0.0.0.0:${ELECTRUMX_TCP_PORT:-50001},ssl://0.0.0.0:${ELECTRUMX_SSL_PORT:-50002},rpc://0.0.0.0:8000"
 
@@ -119,6 +116,8 @@ services:
     environment:
       BITCOINPURPLE_RPC_HOST: "bitcoinpurpled"
       BITCOINPURPLE_RPC_PORT: "13495"
+      RPC_USER: "${RPC_USER:-}"
+      RPC_PASSWORD: "${RPC_PASSWORD:-}"
       ELECTRUMX_RPC_HOST: "electrumx"
       ELECTRUMX_RPC_PORT: "8000"
       SERVICES: "tcp://0.0.0.0:${ELECTRUMX_TCP_PORT:-50001},ssl://0.0.0.0:${ELECTRUMX_SSL_PORT:-50002},rpc://0.0.0.0:8000"

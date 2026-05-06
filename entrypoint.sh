@@ -17,17 +17,16 @@ if [ ! -f "$BITCOINPURPLE_CONF" ]; then
     exit 1
 fi
 
-# Extract RPC credentials from bitcoinpurple.conf
-RPC_USER=$(get_conf_value "rpcuser")
-RPC_PASSWORD=$(get_conf_value "rpcpassword")
-RPC_PORT=$(get_conf_value "rpcport")
+# RPC credentials from .env; fall back to bitcoinpurple.conf (written at node startup)
+RPC_USER="${RPC_USER:-$(get_conf_value "rpcuser")}"
+RPC_PASSWORD="${RPC_PASSWORD:-$(get_conf_value "rpcpassword")}"
+RPC_PORT="${RPC_PORT:-$(get_conf_value "rpcport")}"
 
 # Validate extracted credentials
 if [ -z "$RPC_USER" ] || [ -z "$RPC_PASSWORD" ]; then
-    echo "ERROR: Unable to extract rpcuser or rpcpassword from bitcoinpurple.conf"
-    echo "Please ensure your bitcoinpurple.conf contains:"
-    echo "  rpcuser=your_username"
-    echo "  rpcpassword=your_password"
+    echo "ERROR: RPC_USER and RPC_PASSWORD must be set in .env"
+    echo "Copy .env.example to .env and fill in the credentials."
+    echo "Do NOT set rpcuser/rpcpassword in bitcoinpurple.conf."
     exit 1
 fi
 

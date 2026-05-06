@@ -437,14 +437,15 @@ def get_electrumx_stats_cached(force_refresh=False, include_addnode_probes=False
         cached = cache.get('stats')
         return copy.deepcopy(cached) if cached is not None else None
 
-# Read RPC credentials from bitcoinpurple.conf
 def get_rpc_credentials():
-    """Read RPC credentials from bitcoinpurple.conf"""
+    env_user = os.environ.get('RPC_USER')
+    env_pass = os.environ.get('RPC_PASSWORD')
+    if env_user and env_pass:
+        return env_user, env_pass
     try:
         conf_path = '/bitcoinpurple-config/bitcoinpurple.conf'
         rpc_user = None
         rpc_password = None
-
         with open(conf_path, 'r') as f:
             for line in f:
                 line = line.strip()
@@ -452,7 +453,6 @@ def get_rpc_credentials():
                     rpc_user = line.split('=', 1)[1]
                 elif line.startswith('rpcpassword='):
                     rpc_password = line.split('=', 1)[1]
-
         return rpc_user, rpc_password
     except Exception as e:
         print(f"Error reading RPC credentials: {e}")
