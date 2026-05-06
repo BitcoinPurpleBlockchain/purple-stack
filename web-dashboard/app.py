@@ -847,6 +847,69 @@ def get_electrumx_stats(include_addnode_probes=False):
         print(f"ElectrumX stats error: {e}")
         return None
 
+CLI_READONLY_METHODS = frozenset({
+    # Blockchain
+    'getbestblockhash', 'getblock', 'getblockchaininfo', 'getblockcount',
+    'getblockfilter', 'getblockhash', 'getblockheader', 'getblockstats',
+    'getchaintips', 'getchaintxstats', 'getdifficulty',
+    # Mempool
+    'getmempoolancestors', 'getmempooldescendants', 'getmempoolentry',
+    'getmempoolinfo', 'getrawmempool',
+    # UTXO / TX
+    'gettxout', 'gettxoutproof', 'gettxoutsetinfo',
+    'getrawtransaction', 'decoderawtransaction', 'decodescript', 'verifytxoutproof',
+    # Network
+    'getnetworkinfo', 'getpeerinfo', 'getnettotals', 'getnetworkhashps',
+    'getconnectioncount', 'getaddednodeinfo', 'listbanned',
+    # Mining
+    'getmininginfo', 'estimatesmartfee', 'estimaterawfee',
+    # Address / validation
+    'validateaddress', 'getaddressinfo', 'verifymessage',
+    # Node
+    'getblocksubsidy', 'uptime', 'getindexinfo', 'logging',
+})
+
+
+@app.route('/api/cli', methods=['POST'])
+def cli():
+    body = request.get_json(silent=True) or {}
+    method = (body.get('method') or '').strip().lower()
+    params = body.get('params', [])
+
+    if not method:
+        return jsonify({'error': 'method is required'}), 400
+    if method not in CLI_READONLY_METHODS:
+        return jsonify({'error': f'Method "{method}" is not in the allowed read-only list'}), 403
+    if not isinstance(params, list):
+        return jsonify({'error': 'params must be a list'}), 400
+
+    rpc_user, rpc_password = get_rpc_credentials()
+    if not rpc_user or not rpc_password:
+        return jsonify({'error': 'RPC credentials not available'}), 503
+
+    url = f"http://{BITCOINPURPLE_RPC_HOST}:{BITCOINPURPLE_RPC_PORT}"
+    payload = {"jsonrpc": "2.0", "id": "console", "method": method, "params": params}
+    try:
+        response = requests.post(
+            url,
+            auth=(rpc_user, rpc_password),
+            data=json.dumps(payload),
+            headers={'content-type': 'application/json'},
+            timeout=15
+        )
+        data = response.json()
+        if data.get('error'):
+            return jsonify({'rpc_error': data['error']}), 200
+        return jsonify({'result': data.get('result')}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/cli/methods')
+def cli_methods():
+    return jsonify({'methods': sorted(CLI_READONLY_METHODS)})
+
+
 @app.route('/api/config')
 def api_config():
     """Return the API key for authenticated callers (used by the dashboard JS)."""
@@ -857,6 +920,10 @@ def api_config():
 def index():
     """Serve main dashboard page"""
     return render_template('index.html')
+
+@app.route('/console')
+def console_page():
+    return render_template('console.html')
 
 @app.route('/peers')
 def peers():

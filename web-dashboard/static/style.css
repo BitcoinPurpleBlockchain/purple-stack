@@ -878,6 +878,178 @@ canvas {
     }
 }
 
+/* ─── Console ───────────────────────────────────────────────────────────── */
+
+.console-card {
+    margin-top: 24px;
+}
+
+.console-card:hover {
+    transform: none;
+}
+
+.console-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.console-methods-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.console-methods-link:hover {
+    text-decoration: underline;
+}
+
+.console-methods-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.console-method-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 2px 8px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 4px;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.console-method-tag:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.console-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.console-prompt {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.console-input {
+    flex: 1;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.console-input:focus {
+    border-color: var(--primary-color);
+}
+
+.console-run-btn {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.console-run-btn:hover {
+    opacity: 0.85;
+}
+
+.console-run-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.console-clear-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.console-clear-btn:hover {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+.console-output {
+    background: #0a0f1e;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 14px;
+    min-height: 120px;
+    max-height: 420px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.console-line {
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-bottom: 2px;
+}
+
+.console-line--cmd {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.console-line--result {
+    color: #4ade80;
+}
+
+.console-line--error {
+    color: var(--danger-color);
+}
+
+.console-line--info {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.console-line--sep {
+    border-top: 1px solid var(--border-color);
+    margin: 8px 0;
+}
+
+.console-output--tall {
+    max-height: 65vh;
+}
+
 /* Loading Animation */
 @keyframes fadeIn {
     from {

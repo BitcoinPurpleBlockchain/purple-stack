@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Console - BitcoinPurple Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=14">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='bitcoinpurple.png') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    Node Console
+                </h1>
+                <a href="/" class="back-button">
+                    <span>← Back to Dashboard</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Console Card -->
+        <div class="card console-card" style="margin-top:0">
+            <div class="card-header">
+                <h2>bitcoinpurple-cli</h2>
+                <span class="console-hint">read-only · <a class="console-methods-link" href="#" id="consoleMethodsToggle">show allowed commands</a></span>
+            </div>
+            <div class="card-content">
+                <div class="console-methods-list" id="consoleMethodsList" style="display:none"></div>
+                <form class="console-form" id="consoleForm" autocomplete="off">
+                    <span class="console-prompt">$</span>
+                    <input
+                        class="console-input"
+                        id="consoleInput"
+                        type="text"
+                        placeholder="getblockchaininfo"
+                        spellcheck="false"
+                        autocorrect="off"
+                        autocapitalize="off"
+                    >
+                    <button class="console-run-btn" type="submit">Run</button>
+                    <button class="console-clear-btn" type="button" id="consoleClearBtn" title="Clear output">Clear</button>
+                </form>
+                <div class="console-output console-output--tall" id="consoleOutput">
+                    <div class="console-line console-line--info">Type a command and press Run or Enter.</div>
+                    <div class="console-line console-line--info">Example: getblock &lt;hash&gt; 1 · getpeerinfo · getmempoolinfo</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer" style="margin-top:24px">
+            <p>BitcoinPurple Node Console — read-only RPC access</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='console.js') }}?v=1"></script>
+</body>
+</html>
