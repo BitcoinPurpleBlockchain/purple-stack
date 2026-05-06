@@ -4,19 +4,27 @@ set -euo pipefail
 repo="BitcoinPurpleBlockchain/bitcoinpurplecore"
 platform="linux"
 arch=""
+version=""
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/bitcoinpurple-bin.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 
 die(){ echo "[download-binaries] ERROR: $*" >&2; exit 1; }
 log(){ echo "[download-binaries] $*"; }
-usage(){ echo "Usage: ./download-binaries.sh [--platform linux|darwin|windows] [--arch x86_64|aarch64|armv7l] [--repo owner/name]"; }
+usage(){
+  echo "Usage: ./download-binaries.sh [--version v1.2.3] [--platform linux|darwin|windows] [--arch x86_64|aarch64|armv7l] [--repo owner/name]"
+  echo ""
+  echo "  --version   Specific release tag to download (e.g. v1.2.3). Defaults to latest."
+  echo "  --platform  Target platform. Defaults to linux."
+  echo "  --arch      Target architecture. Auto-detected from current machine if not set."
+  echo "  --repo      GitHub repository (owner/name). Defaults to BitcoinPurpleBlockchain/bitcoinpurplecore."
+}
 
 norm_arch(){ case "$1" in x86_64|amd64) echo x86_64;; aarch64|arm64) echo aarch64;; armv7l|armv7) echo armv7l;; *) die "Unsupported arch: $1";; esac; }
 norm_platform(){ case "$1" in linux) echo linux;; darwin|macos|osx) echo darwin;; windows|win|mingw|msys|cygwin) echo windows;; *) die "Unsupported platform: $1";; esac; }
 
 http_get(){
-  if command -v curl >/dev/null 2>&1; then curl -fsSL --retry 3 --connect-timeout 15 "$1"
+  if command -v curl >/dev/null 2>&1; then curl -sSL --retry 3 --connect-timeout 15 "$1"
   elif command -v wget >/dev/null 2>&1; then wget -qO- "$1"
   else die "Install curl or wget"; fi
 }
@@ -28,6 +36,7 @@ http_download(){
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --version) [[ $# -ge 2 ]] || die "Missing value for --version"; version="$2"; shift 2 ;;
     --platform) [[ $# -ge 2 ]] || die "Missing value for --platform"; platform="$(norm_platform "$2")"; shift 2 ;;
     --arch) [[ $# -ge 2 ]] || die "Missing value for --arch"; arch="$(norm_arch "$2")"; shift 2 ;;
     --repo) [[ $# -ge 2 ]] || die "Missing value for --repo"; repo="$2"; shift 2 ;;
@@ -37,9 +46,28 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$arch" ]] || arch="$(norm_arch "$(uname -m)")"
-api="https://api.github.com/repos/${repo}/releases/latest"
-assets="$(http_get "$api" | grep -oE '"browser_download_url":[[:space:]]*"[^"]+"' | sed -E 's/.*"([^"]+)"/\1/')"
-[[ -n "$assets" ]] || die "No release assets found"
+
+if [[ -n "$version" ]]; then
+  api="https://api.github.com/repos/${repo}/releases/tags/${version}"
+  log "Fetching release: $version"
+else
+  api="https://api.github.com/repos/${repo}/releases/latest"
+  log "Fetching latest release"
+fi
+
+response="$(http_get "$api")"
+
+# Detect a GitHub "Not Found" response (returned as JSON, not HTTP 404, due to -fsSL)
+if echo "$response" | grep -q '"message".*"Not Found"'; then
+  if [[ -n "$version" ]]; then
+    die "Release '$version' not found in $repo. Check the tag name at: https://github.com/$repo/releases"
+  else
+    die "No releases found in $repo"
+  fi
+fi
+
+assets="$(echo "$response" | grep -oE '"browser_download_url":[[:space:]]*"[^"]+"' | sed -E 's/.*"([^"]+)"/\1/')"
+[[ -n "$assets" ]] || die "No release assets found for ${version:-latest}"
 
 pick_asset(){
   local strict="${1:-0}" url name
@@ -65,7 +93,7 @@ pick_asset(){
 }
 
 url="$(pick_asset 1 || pick_asset 0 || true)"
-[[ -n "$url" ]] || die "No compatible asset for platform=$platform arch=$arch"
+[[ -n "$url" ]] || die "No compatible asset for platform=$platform arch=$arch in release ${version:-latest}. Available assets:\n$(echo "$assets" | sed 's/^/  /')"
 archive="$tmp/${url##*/}"
 
 log "Platform: $platform | Arch: $arch"
