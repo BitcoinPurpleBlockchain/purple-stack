@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node Console - BitcoinPurple Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=14">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=15">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='bitcoinpurple.png') }}">
 </head>
 <body>
@@ -19,7 +19,8 @@
                     Node Console
                 </h1>
                 <a href="/" class="back-button">
-                    <span>← Back to Dashboard</span>
+                    <span class="back-long">← Back to Dashboard</span>
+                    <span class="back-short">← Back</span>
                 </a>
             </div>
         </header>
@@ -28,27 +29,45 @@
         <div class="card console-card" style="margin-top:0">
             <div class="card-header">
                 <h2>bitcoinpurple-cli</h2>
-                <span class="console-hint">read-only · <a class="console-methods-link" href="#" id="consoleMethodsToggle">show allowed commands</a></span>
+                <div class="console-header-actions">
+                    <button class="console-help-btn" type="button" id="consoleHelpBtn">? Help</button>
+                    <span class="console-hint">read-only</span>
+                </div>
             </div>
             <div class="card-content">
-                <div class="console-methods-list" id="consoleMethodsList" style="display:none"></div>
-                <form class="console-form" id="consoleForm" autocomplete="off">
-                    <span class="console-prompt">$</span>
-                    <input
-                        class="console-input"
-                        id="consoleInput"
-                        type="text"
-                        placeholder="getblockchaininfo"
-                        spellcheck="false"
-                        autocorrect="off"
-                        autocapitalize="off"
-                    >
-                    <button class="console-run-btn" type="submit">Run</button>
-                    <button class="console-clear-btn" type="button" id="consoleClearBtn" title="Clear output">Clear</button>
-                </form>
+                <!-- Help panel -->
+                <div class="console-help-panel" id="consoleHelpPanel" style="display:none">
+                    <div class="console-help-search-wrap">
+                        <input class="console-help-search" id="consoleHelpSearch" type="text" placeholder="Filter commands...">
+                    </div>
+                    <div class="console-help-table-wrap">
+                        <table class="console-help-table" id="consoleHelpTable">
+                            <thead><tr><th>Command</th><th>Description</th><th>Usage</th></tr></thead>
+                            <tbody id="consoleHelpBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Input -->
+                <div class="console-input-wrap">
+                    <form class="console-form" id="consoleForm" autocomplete="off">
+                        <span class="console-prompt">$</span>
+                        <input
+                            class="console-input"
+                            id="consoleInput"
+                            type="text"
+                            placeholder="getblockchaininfo"
+                            spellcheck="false"
+                            autocorrect="off"
+                            autocapitalize="off"
+                        >
+                        <button class="console-run-btn" type="submit">Run</button>
+                        <button class="console-clear-btn" type="button" id="consoleClearBtn" title="Clear output">Clear</button>
+                    </form>
+                    <!-- Autocomplete dropdown -->
+                    <ul class="console-autocomplete" id="consoleAutocomplete" style="display:none"></ul>
+                </div>
                 <div class="console-output console-output--tall" id="consoleOutput">
-                    <div class="console-line console-line--info">Type a command and press Run or Enter.</div>
-                    <div class="console-line console-line--info">Example: getblock &lt;hash&gt; 1 · getpeerinfo · getmempoolinfo</div>
+                    <div class="console-line console-line--info">Type a command and press Run or Enter. Press ? Help to see all available commands.</div>
                 </div>
             </div>
         </div>
@@ -59,6 +78,6 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='console.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='console.js') }}?v=2"></script>
 </body>
 </html>
