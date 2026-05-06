@@ -279,7 +279,8 @@ async function updateElectrumXStats() {
 
             // Active servers from peer discovery
             const activeServers = Array.isArray(data.stats.active_servers) ? data.stats.active_servers : [];
-            document.getElementById('activeServersCount').textContent = data.stats.active_servers_count ?? activeServers.length;
+            const activeCount = data.stats.active_servers_count ?? activeServers.length;
+            document.getElementById('activeServersCount').textContent = activeCount;
         }
 
     } catch (error) {

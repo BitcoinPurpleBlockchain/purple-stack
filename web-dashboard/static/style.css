@@ -196,6 +196,7 @@ body {
     background: rgba(99, 102, 241, 0.05);
     border-radius: 8px;
     border: 1px solid rgba(99, 102, 241, 0.2);
+    text-align: left;
 }
 
 .stat-link {
@@ -751,6 +752,7 @@ canvas {
     /* Row layout: label left (secondary), value right (primary) */
     .stat-item {
         padding: 10px 12px;
+        min-height: 52px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -764,40 +766,23 @@ canvas {
         letter-spacing: 0;
         flex-shrink: 0;
         max-width: 55%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-value {
         font-size: 17px;
         text-align: right;
         min-width: 0;
-        word-break: break-word;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Hide absolute arrow — whole item is the tap target on mobile */
     .stat-link::after {
         display: none;
-    }
-
-    /* Full-width items (Network Hashrate, Server IP): column layout */
-    .stat-grid .full-width,
-    .electrumx-grid .full-width {
-        display: block;
-        padding: 12px;
-    }
-
-    .stat-grid .full-width .stat-label,
-    .electrumx-grid .full-width .stat-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-        max-width: none;
-    }
-
-    .stat-grid .full-width .stat-value,
-    .electrumx-grid .full-width .stat-value {
-        font-size: 22px;
-        text-align: left;
     }
 
     /* Resource bars: label + % on row 1, bar full width on row 2 */
@@ -1228,6 +1213,140 @@ td.help-usage {
     white-space: nowrap;
 }
 
+/* ─── Featured & Nav stat items ─────────────────────────────────────────── */
+
+/* Hashrate: full-width, same base as other stat-items */
+.stat-item--featured {
+    border-color: rgba(99, 102, 241, 0.35);
+}
+
+.stat-featured-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-featured-icon {
+    width: 44px;
+    height: 44px;
+    stroke: var(--primary-color);
+    opacity: 0.35;
+    flex-shrink: 0;
+}
+
+.stat-value--gradient {
+    font-size: 24px; /* match base .stat-value */
+}
+
+/* Nav cards: Connections, Active Servers, Console */
+.stat-item--nav {
+    display: grid;
+    grid-template-columns: 40px 1fr 20px;
+    align-items: center;
+    gap: 0 12px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    border-color: rgba(99, 102, 241, 0.2);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.stat-item--nav:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-2px);
+}
+
+.stat-nav-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.stat-nav-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--primary-color);
+}
+
+.stat-nav-body {
+    min-width: 0;
+}
+
+.stat-nav-body .stat-label {
+    margin-bottom: 4px;
+}
+
+.stat-nav-body .stat-value {
+    font-size: 22px;
+}
+
+.stat-nav-arrow {
+    font-size: 18px;
+    color: var(--primary-color);
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.2s;
+    justify-self: end;
+}
+
+.stat-item--nav:hover .stat-nav-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+}
+
+/* Mobile overrides for featured + nav items:
+   collapse to the same label-left / value-right row as regular stat-items */
+@media (max-width: 480px) {
+    /* Featured card: same label-left / value-right row as regular stat-items */
+    .stat-item--featured {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .stat-featured-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .stat-featured-inner > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .stat-featured-icon {
+        display: none;
+    }
+    .stat-value--gradient {
+        font-size: 17px;
+        text-align: right;
+    }
+
+    /* Nav cards: same flex row, hide icon and arrow */
+    .stat-item--nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+    .stat-nav-icon {
+        display: none;
+    }
+    .stat-nav-body {
+        display: contents; /* unwrap so label/value are flex children */
+    }
+    .stat-nav-arrow {
+        display: none;
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    MOBILE & TOUCH REFINEMENTS
    These rules appear after the base responsive blocks so cascade handles
@@ -1304,24 +1423,7 @@ td.help-usage {
     }
 }
 
-/* ── 5. stat-grid-3col: fix .full-width items that were uncovered ─────────── */
-@media (max-width: 480px) {
-    .stat-grid-3col .full-width {
-        display: block;
-        padding: 12px;
-    }
-    .stat-grid-3col .full-width .stat-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-        max-width: none;
-    }
-    .stat-grid-3col .full-width .stat-value {
-        font-size: 20px;
-        text-align: left;
-    }
-}
+/* ── 5. (removed: stat-grid-3col .full-width override now handled by featured card rules) ── */
 
 /* ── 6. Tables: smooth iOS momentum scroll ───────────────────────────────── */
 .table-container {
