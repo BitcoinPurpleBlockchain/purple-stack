@@ -107,6 +107,7 @@ The ElectrumX container startup runs these steps in order before exec-ing `elect
 4. Inject bootstrap peers from `ELECTRUMX_PEERS` env var into `coins.py`
 5. Generate a 4096-bit self-signed SSL certificate (SAN includes public IP) if not already present
 6. Patch `TX_COUNT` / `TX_COUNT_HEIGHT` via `getchaintxstats` RPC
+7. Flush-counter guard: read the history DB `flush_count`; if it is near the uint16 limit (`FLUSH_COMPACT_THRESHOLD`, default 60000) reset it via `electrumx_compact_history` (or wipe the index as fallback) to avoid the `struct.error` flush crash-loop
 
 ## Testing
 

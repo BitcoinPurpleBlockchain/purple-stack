@@ -197,5 +197,38 @@ else
     echo ">> Node not reachable yet, using defaults from coins_btcp.py"
 fi
 
+# ── History flush-counter guard ──────────────────────────────────────────────
+# ElectrumX stores the history flush counter as a uint16 (max 65535). When an
+# index reaches the limit, the next flush raises struct.error and the server
+# crash-loops. Detect a near-limit counter and reset it automatically.
+DB_DIRECTORY="${DB_DIRECTORY:-/data}"
+HIST_DB="${DB_DIRECTORY}/hist"
+FLUSH_COMPACT_THRESHOLD="${FLUSH_COMPACT_THRESHOLD:-60000}"
+
+if [ -d "$HIST_DB" ]; then
+    FLUSH_COUNT=$(python3 - "$HIST_DB" <<'FLUSHCHECK'
+import sys
+try:
+    import plyvel, ast
+    db = plyvel.DB(sys.argv[1])
+    raw = db.get(b'state\x00\x00')
+    db.close()
+    print(ast.literal_eval(raw.decode())['flush_count'] if raw else 0)
+except Exception:
+    print(-1)   # unreadable → do nothing, never wipe blindly
+FLUSHCHECK
+)
+    if [ "$FLUSH_COUNT" -ge "$FLUSH_COMPACT_THRESHOLD" ] 2>/dev/null; then
+        echo ">> History flush_count=${FLUSH_COUNT} near uint16 limit (65535)."
+        if command -v electrumx_compact_history >/dev/null 2>&1 \
+           && electrumx_compact_history; then
+            echo ">> History compaction complete — flush counter reset."
+        else
+            echo ">> Compaction unavailable/failed; wiping index for a clean resync."
+            rm -rf "${DB_DIRECTORY:?}/"*
+        fi
+    fi
+fi
+
 # Execute the original electrumx command
 exec /usr/local/bin/electrumx_server

@@ -67,6 +67,31 @@ To add extra bootstrap peers, set `ELECTRUMX_PEERS` in `.env` (see [configuratio
 
 ---
 
+## ElectrumX crash-loop: `struct.error: 'H' format requires 0 <= number <= 65535`
+
+ElectrumX stores the history DB *flush counter* as a 16-bit unsigned integer (max **65535**).
+When an index reaches the limit (startup log shows `flush count: 65,535`), the next flush
+overflows, the server terminates with the `struct.error` above, and Docker restarts it into the
+same crash — a loop.
+
+The counter lives inside `electrumx-data/`, not in the code, so this can hit one host and not
+another with the same repo. The stack **self-heals**: `entrypoint.sh` reads the flush counter
+before starting the server and, when it is near the limit, resets it automatically — preferring
+non-destructive `electrumx_compact_history`, falling back to wiping the index for a clean resync
+(the index is derived data, always rebuildable from the node).
+
+The threshold is configurable via `FLUSH_COMPACT_THRESHOLD` (default `60000`). To force the fix
+immediately, just restart the stack; the guard runs on every ElectrumX startup. Equivalent
+manual fix:
+
+```bash
+docker compose stop electrumx
+rm -rf electrumx-data/*
+docker compose up -d
+```
+
+---
+
 ## Node Console shows "method not allowed"
 
 The `/console` page only exposes read-only RPC methods. Write operations (`sendrawtransaction`, `generate`, etc.) are intentionally blocked. Use `bitcoinpurple-cli` directly inside the container for write operations:
