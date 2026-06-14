@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Collaboration Rules
+
+- **Language**: the user writes in Italian; always reply in Italian. Code, comments, commit messages, and documentation files must be written in English.
+- **Before implementing any requested change**: reason through it as a crypto/blockchain expert. If the change could break consensus, introduce a security issue, conflict with ElectrumX internals, or simply not make sense for this coin, say so clearly and explain why before touching any file. Only proceed once the approach is validated.
+
 ## What This Project Is
 
 A fully Dockerized stack for running a **BitcoinPurple (BTCP)** full node, an **ElectrumX** server, and a **web dashboard**. All three services communicate over a shared Docker network named `purple`.
@@ -123,7 +128,8 @@ Tests are organized in three layers under `test/`:
 
 ## Testnet
 
-1. Add `testnet=1` and `rpcport=23495` to `.bitcoinpurple/bitcoinpurple.conf.example` (the conf is regenerated from this template at each container startup)
-2. Set `NET: "testnet"` in the `electrumx` service in `docker-compose.yml`
-3. Clear ElectrumX index: `rm -rf ./electrumx-data/*`
-4. Restart: `docker compose up -d`
+1. Add `testnet=1` and `rpcport=23495` to `.bitcoinpurple/bitcoinpurple.conf.example`.
+2. Delete the generated conf so it is regenerated from the updated example on next start: `rm .bitcoinpurple/bitcoinpurple.conf`
+3. Set `NET: "testnet"` in the `electrumx` service in `docker-compose.yml`
+4. Clear ElectrumX index: `rm -rf ./electrumx-data/*`
+5. Restart: `docker compose up -d`
